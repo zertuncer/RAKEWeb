@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="RAKE - Gelişmiş robotik araç platformu. Lidar, stereo kamera ve otonom sürüş teknolojileriyle donatılmış yeni nesil keşif robotu.">
+    <title>RAKE — Robotik Araç Keşif Platformu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body data-model="AYAZ.fbx">
+
+    <!-- ===== 3D BACKGROUND (Three.js) ===== -->
+    <div id="spline-bg">
+
+        <!-- Pan/Joystick Control -->
+        <div id="nav-pan-control">
+            <button class="pan-arrow pan-up" data-dir="up" aria-label="Yukarı Kaydır">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="12,2 18,22 6,22" />
+                </svg>
+            </button>
+            <button class="pan-arrow pan-right" data-dir="right" aria-label="Sağa Kaydır">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="2,6 22,12 2,18" />
+                </svg>
+            </button>
+            <button class="pan-arrow pan-down" data-dir="down" aria-label="Aşağı Kaydır">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="6,2 18,2 12,22" />
+                </svg>
+            </button>
+            <button class="pan-arrow pan-left" data-dir="left" aria-label="Sola Kaydır">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="22,6 2,12 22,18" />
+                </svg>
+            </button>
+            <div class="pan-circle" id="pan-joystick"></div>
+        </div>
+        <!-- Nav Sphere (Trackball) -->
+        <div id="nav-sphere"></div>
+        <!-- Close 3D View Button -->
+        <button id="btn-close-3d" class="btn-close-3d" aria-label="Kapat">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <canvas id="canvas3d"></canvas>
+    </div>
+
+    <!-- ===== SCAN-LINE OVERLAY ===== -->
+    <div class="scanline-overlay" aria-hidden="true"></div>
+
+    <!-- ===== HEADER / NAV ===== -->
+    <header id="main-header">
+        <nav class="header-left-nav" style="display: flex; align-items: center;">
+            <img src="TOP VIEW.png" alt="RAKE Logo" style="height: 1rem; width: auto; margin-right: 2rem;">
+            <a href="#" class="nav-link active" data-nav="araclar">Araçlar</a>
+            <a href="#" class="nav-link" data-nav="takimimiz">Takımımız</a>
+            <a href="#" class="nav-link" data-nav="ekipler">Ekipler</a>
+            <a href="#" class="nav-link" data-nav="sponsorlarimiz">Sponsorlarımız</a>
+        </nav>
+        <div class="logo-mark">
+            <span class="logo-icon">
+                <img src="TOP VIEW (1).png" alt="RAKE Icon" style="height: 2rem; width: auto; display: block;">
+            </span>
+        </div>
+        <div class="header-right">
+            <a href="#" class="nav-link" data-nav="basvuru">Başvuru</a>
+            <a href="#" class="nav-link">İletişim</a>
+        </div>
+    </header>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section id="carousel-section">
+        <div class="carousel-track" id="carousel-track">
+            <!-- Slide 1: AYAZ -->
+            <div class="carousel-slide active" data-slide="0">
+                <div class="hero-content">
+                    <h2 class="hero-title">AYAZ</h2>
+                    <p class="hero-description" style="max-width: 600px;">
+                        2026 IGVC Amerika uluslararası otonom araç yarışması<br>
+                        <strong><span style="color: #ffffff; font-weight: 700;">Dünya 2. si</span></strong>
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-outline btn-scroll-details">Proje Detayları</button>
+                        <button class="btn btn-primary btn-3d-view">3D İncele</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2: KAYRA -->
+            <div class="carousel-slide" data-slide="1">
+                <div class="hero-content">
+                    <h2 class="hero-title">KAYRA</h2>
+                    <p class="hero-description" style="max-width: 600px;">
+                        Yeni nesil otonom devriye ve haritalama aracı<br>
+                        <strong><span style="color: #ffffff; font-weight: 700;">Çok Yakında</span></strong>
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-outline btn-scroll-details">Proje Detayları</button>
+                        <button class="btn btn-primary btn-3d-view">3D İncele</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 3: KAYRA V2 -->
+            <div class="carousel-slide" data-slide="2">
+                <div class="hero-content">
+                    <h2 class="hero-title">EGEMEN</h2>
+                    <p class="hero-description" style="max-width: 600px;">
+                        Gelişmiş modüler mobilite birimi<br>
+                        <strong><span style="color: #ffffff; font-weight: 700;">Konsept Tasarım</span></strong>
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-outline btn-scroll-details">Proje Detayları</button>
+                        <button class="btn btn-primary btn-3d-view">3D İncele</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 4: İOS İKA -->
+            <div class="carousel-slide" data-slide="3">
+                <div class="hero-content">
+                    <h2 class="hero-title">İOS İKA</h2>
+                    <p class="hero-description" style="max-width: 600px;">
+                        İnsansız Otonom Sistem Kara Aracı<br>
+                        <strong><span style="color: #ffffff; font-weight: 700;">Yeni Model</span></strong>
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-outline btn-scroll-details">Proje Detayları</button>
+                        <button class="btn btn-primary btn-3d-view">3D İncele</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 5: İHA -->
+            <div class="carousel-slide" data-slide="4">
+                <div class="hero-content">
+                    <h2 class="hero-title">HİLAL</h2>
+                    <p class="hero-description" style="max-width: 600px;">
+                        İnsansız Hava Aracı<br>
+                        <strong><span style="color: #ffffff; font-weight: 700;">Hava Platformu</span></strong>
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-outline btn-scroll-details">Proje Detayları</button>
+                        <button class="btn btn-primary btn-3d-view">3D İncele</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel Controls -->
+        <button id="carousel-prev" class="carousel-arrow left" aria-label="Önceki Araç">
+            <svg viewBox="0 0 24 24">
+                <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z" />
+            </svg>
+        </button>
+        <button id="carousel-next" class="carousel-arrow right" aria-label="Sonraki Araç">
+            <svg viewBox="0 0 24 24">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
+            </svg>
+        </button>
+
+        <div class="carousel-dots" id="carousel-dots">
+            <div class="dot active" data-index="0"></div>
+            <div class="dot" data-index="1"></div>
+            <div class="dot" data-index="2"></div>
+            <div class="dot" data-index="3"></div>
+            <div class="dot" data-index="4"></div>
+        </div>
+    </section>
+
+    <!-- ===== DETAILS SECTION ===== -->
+    <section id="details-section" class="details-section">
+
+        <!-- AYAZ DETAILS -->
+        <div id="details-ayaz">
+
+            <!-- Block 1: Başarı -->
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-image-wrapper">
+                        <img src="pngs/image copy.png" alt="AYAZ parkurda otonom sürüş sırasında">
+                    </div>
+                    <div class="detail-content">
+                        <span class="eyebrow-text">IGVC 2026</span>
+                        <h2 class="main-heading">Amerika'da yarıştık.<br>Dünya 2. si olduk.</h2>
+                        <p class="main-paragraph">
+                            İstanbul Teknik Üniversitesi RAKE takımı olarak, tamamen kendi tasarladığımız otonom
+                            aracımız
+                            AYAZ ile IGVC 2026 AutoNav yarışmasına katıldık. Dünyanın dört bir yanından gelen takımlar
+                            arasında Dünya 2.liğini kazandık.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block 2: Araç Tanıtımı -->
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-content">
+                        <span class="eyebrow-text">Tanışın: AYAZ</span>
+                        <h2 class="main-heading">Sıfırdan tasarlandı.<br>Her detay bizden.</h2>
+                        <p class="main-paragraph">
+                            Mekanik tasarımından yazılım mimarisine, elektronik kartlarından 3D baskı parçalarına kadar
+                            her
+                            şey ekibimiz tarafından geliştirildi. 16 kg ağırlığındaki AYAZ; LiDAR, stereo kamera ve GPS
+                            sensörleriyle çevresini algılayarak engelleri aşıyor, şeritleri takip ediyor ve hedef
+                            noktalarına otonom olarak ulaşıyor.
+                        </p>
+                    </div>
+                    <div class="detail-image-wrapper">
+                        <img src="pngs/image.png" alt="AYAZ yarışma parkurunda engeller arasında ilerlerken">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block 3: Vizyon -->
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-image-wrapper">
+                        <img src="pngs/image copy 2.png" alt="AYAZ yakın çekim, sensör kulesi ve gövde detayı">
+                    </div>
+                    <div class="detail-content">
+                        <span class="eyebrow-text">Mühendislik</span>
+                        <h2 class="main-heading">Yapay zekâ ile gören.<br>Kendi kararını veren.</h2>
+                        <p class="main-paragraph">
+                            AYAZ, önündeki 180 dereceyi tarayan LiDAR sensörüyle varilleri ve engelleri tespit eder;
+                            derin
+                            öğrenme tabanlı kamera sistemi ve renk filtresi ile çizgileri algılayarak parkur sınırları
+                            içinde kalır. Kendisine verilen GPS noktalarını sırayla takip ederken, yol üzerindeki tüm
+                            engellerden güvenle kaçınır.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of details-ayaz -->
+
+        <!-- KAYRA DETAILS -->
+        <div id="details-kayra" style="display: none;">
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-content">
+                        <span class="eyebrow-text">Yeni Nesil Platform</span>
+                        <h2 class="main-heading">KAYRA<br>Otonom Devriye Aracı</h2>
+                        <p class="main-paragraph">
+                            Kayra, zorlu arazi koşullarında otonom devriye ve haritalama görevlerini yerine getirmek
+                            üzere geliştirildi. Gelişmiş lazer atış ve hedefleme donanımlarıyla desteklenen araç,
+                            entegre RTK GPS anteni sayesinde milimetrik hassasiyetle belirlenen rotalarda ilerler.
+                        </p>
+                    </div>
+                    <div class="detail-image-wrapper">
+                        <div
+                            style="width: 100%; height: 400px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);">
+                            Saha Testi Görselleri Yakında
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of details-kayra -->
+
+        <!-- KAYRA V2 DETAILS -->
+        <div id="details-yanci" style="display: none;">
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-content">
+                        <span class="eyebrow-text">Yeni Prototip</span>
+                        <h2 class="main-heading">KAYRA V2<br>Modüler Mobilite</h2>
+                        <p class="main-paragraph">
+                            Yancı, esnek ve modüler bir yürüyen aksam prototipi olarak tasarlandı. Geliştirme
+                            aşamasındaki bu araç, farklı üst modüllerin hızlıca entegre edilebileceği standart bir taban
+                            platformu sunmayı hedefliyor.
+                        </p>
+                    </div>
+                    <div class="detail-image-wrapper">
+                        <div
+                            style="width: 100%; height: 400px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);">
+                            Konsept Görselleri Yakında
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of details-yanci -->
+
+        <!-- İOS İKA DETAILS -->
+        <div id="details-ios" style="display: none;">
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-content">
+                        <span class="eyebrow-text">Yeni Model</span>
+                        <h2 class="main-heading">İOS İKA<br>İnsansız Kara Aracı</h2>
+                        <p class="main-paragraph">
+                            İOS İKA, yeni nesil operasyonlar için tasarlanmış insansız kara aracı platformudur.
+                        </p>
+                    </div>
+                    <div class="detail-image-wrapper">
+                        <div
+                            style="width: 100%; height: 400px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);">
+                            Görseller Yakında
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of details-ios -->
+
+        <!-- İHA DETAILS -->
+        <div id="details-iha" style="display: none;">
+            <div class="details-container">
+                <div class="details-grid">
+                    <div class="detail-content">
+                        <span class="eyebrow-text">Hava Platformu</span>
+                        <h2 class="main-heading">İHA<br>İnsansız Hava Aracı</h2>
+                        <p class="main-paragraph">
+                            İHA, gökyüzünde görev almak üzere tasarlanmış yeni nesil insansız hava aracı sistemimizdir.
+                        </p>
+                    </div>
+                    <div class="detail-image-wrapper">
+                        <div
+                            style="width: 100%; height: 400px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);">
+                            Görseller Yakında
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of details-iha -->
+    </section>
+
+    <!-- ===== TAKIMIMIZ (OUR TEAM) PAGE ===== -->
+    <section id="takimimiz-section" class="takimimiz-page" style="display: none;">
+
+        <!-- Hero Banner -->
+        <div class="team-hero">
+            <div class="team-hero-image">
+                <img src="pngs/team_phts/unnamed.jpg" alt="İTÜ RAKE Takımı" id="team-hero-img">
+            </div>
+            <div class="team-hero-overlay">
+                <div class="team-hero-content">
+                    <span class="team-hero-badge">İTÜ RAKE TAKIMI</span>
+                    <h1 class="team-hero-title">Robotik Arama<br>Kurtarma Ekibi</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biz Kimiz -->
+        <div class="team-section-light">
+            <div class="team-container">
+                <div class="team-intro-grid">
+                    <div class="team-intro-left">
+                        <span class="eyebrow-text">Biz Kimiz</span>
+                        <h2 class="main-heading">İTÜ RAKE<br><span class="heading-accent">Robotik Arama Kurtarma
+                                Ekibi</span></h2>
+                    </div>
+                    <div class="team-intro-right">
+                        <p class="main-paragraph">
+                            İTÜ RAKE, İstanbul Teknik Üniversitesi Kontrol ve Otomasyon Kulübü (OTOKON) çatısı altında
+                            Mayıs 2019'da kurulan, farklı mühendislik fakültelerinden gelen öğrencileri bir araya
+                            getiren deneyimli bir arama kurtarma robotu ekibidir. Üniversitemizin yüzyıllardır süregelen
+                            mühendislik birikimi ve kulübümüzün yıllara dayanan tecrübesiyle yola çıktık.
+                        </p>
+                        <p class="main-paragraph">
+                            Amacımız; insanların erişemeyeceği ve hayatlarını tehlikeye atacağı doğal ve insan kaynaklı
+                            afet durumlarına teknik ve bilimsel çözümler üretmektir. Aynı zamanda okulumuzun farklı
+                            fakültelerinden gelen azimli öğrencilerin, mühendislik uygulama alanlarını keşfetmelerine
+                            öncülük etmeyi hedefliyoruz.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IGVC 2026 Başarı -->
+        <div class="team-section-dark">
+            <div class="team-container">
+                <div class="team-achievement-grid">
+                    <div class="team-achievement-header">
+                        <span class="team-eyebrow-dark">IGVC 2026 — Detroit, Michigan</span>
+                        <h2 class="team-heading-dark">Amerika'ya çıktık,<br><span class="heading-glow">ilk denememizde
+                                dünya
+                                2.si olduk.</span></h2>
+                        <p class="team-paragraph-dark">
+                            Kara araçları alanının en prestijli uluslararası organizasyonlarından biri olan Intelligent
+                            Ground Vehicle Competition'a (IGVC), ABD'nin Michigan eyaletindeki Detroit kentinde 6
+                            ülkeden 28
+                            takım katıldı. Tamamen kendi tasarladığımız otonom aracımız AYAZ ile yarışmaya ilk kez
+                            katıldık
+                            ve finale kalarak Dünya İkinciliği elde ettik.
+                        </p>
+                        <p class="team-paragraph-dark">
+                            AYAZ, zorlu parkurlarda tamamen otonom şekilde hareket ederek engel algılama, rota planlama,
+                            otonom navigasyon ve görev tamamlama gibi kritik kabiliyetleriyle jüri üyelerinden yüksek
+                            puan
+                            aldı. Bu sonuç, yaklaşık bir yıllık yoğun bir çalışmanın ve elektronik, mekanik, yazılım ve
+                            organizasyon ekiplerimizin ortak emeğinin karşılığıydı.
+                        </p>
+                    </div>
+                    <div class="team-achievement-images">
+                        <div class="team-image-card">
+                            <img src="pngs/team_phts/aa_picture_20260720_42019229.jpg"
+                                alt="İTÜ RAKE Takımı laboratuvarda çalışırken" id="team-igvc-img2">
+                            <div class="team-image-caption">İTÜ RAKE Takımı laboratuvarda çalışırken</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ekip Yapımız -->
+        <div class="team-section-light">
+            <div class="team-container">
+                <div class="team-structure-grid">
+                    <div class="team-structure-content">
+                        <span class="eyebrow-text">Ekip Yapımız</span>
+                        <h2 class="main-heading">Dört disiplin,<br><span class="heading-accent">tek hedef.</span></h2>
+                        <p class="main-paragraph">
+                            Takımımız; mekanik, elektronik, yazılım ve organizasyon ekiplerinden oluşan disiplinler
+                            arası bir yapıya sahiptir. Araçlarımızın mekanik tasarımından otonom sürüş yazılımına,
+                            elektronik kart tasarımından 3D baskı parçalarına kadar her şey tamamen ekibimiz tarafından,
+                            kampüsümüzdeki laboratuvarda geliştirilir.
+                        </p>
+                        <p class="main-paragraph">
+                            Bilimin, teknolojinin ve inovasyonun ışığında kendini geliştiren öğrencilerin bir araya
+                            gelmesiyle oluşan bu ekip dinamiğiyle, dahil olduğumuz her projenin altından kalkmak için
+                            var gücümüzle çalışıyoruz.
+                        </p>
+                        <div class="team-disciplines">
+                            <div class="discipline-tag">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+                                </svg>
+                                <span>Mekanik</span>
+                            </div>
+                            <div class="discipline-tag">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path
+                                        d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                    <circle cx="12" cy="12" r="4" />
+                                </svg>
+                                <span>Elektronik</span>
+                            </div>
+                            <div class="discipline-tag">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <polyline points="16 18 22 12 16 6" />
+                                    <polyline points="8 6 2 12 8 18" />
+                                </svg>
+                                <span>Yazılım</span>
+                            </div>
+                            <div class="discipline-tag">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                                    <path d="M16 3.13a4 4 0 010 7.75" />
+                                </svg>
+                                <span>Organizasyon</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="team-structure-image">
+                        <img src="pngs/team_phts/IMG_6672_rotated.jpeg" alt="İTÜ RAKE Ekip Yapısı"
+                            id="team-structure-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vizyonumuz -->
+        <div class="team-section-dark team-vision-section">
+            <div class="team-container">
+                <div class="team-vision-grid">
+                    <div class="team-vision-content">
+                        <span class="team-eyebrow-dark">Vizyonumuz</span>
+                        <h2 class="team-heading-dark">Karadan havaya,<br><span class="heading-glow">birlikte görev yapan
+                                filo.</span></h2>
+                        <p class="team-paragraph-dark">
+                            Bugüne kadar kara araçları üzerine yoğunlaştık; şimdi hedefimiz, kara ve hava araçlarının
+                            birbiriyle haberleşerek birlikte görev yapabildiği, tamamen otonom bir arama kurtarma robot
+                            filosu oluşturmak. AYAZ ile kazandığımız otonom navigasyon ve algı tecrübesini, KAYRA ve İHA
+                            gibi yeni platformlarımıza taşıyarak büyümeye devam ediyoruz.
+                        </p>
+                    </div>
+                    <div class="team-vision-image">
+                        <img src="pngs/team_phts/unnamed (1).jpg" alt="İTÜ RAKE gelecek vizyonu" id="team-vision-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    </section>
+
+    <!-- ===== EKİPLER (TEAMS) PAGE ===== -->
+    <section id="ekipler-section" class="takimimiz-page" style="display: none;">
+        <!-- Ekipler Detay -->
+        <div class="team-section-light" style="padding-top: 80px;">
+            <div class="team-container">
+                <div class="team-intro-grid" style="margin-bottom: 3rem;">
+                    <div class="team-intro-left">
+                        <h1 class="main-heading" style="font-size: 3.2rem; line-height: 1.1; margin-bottom: 0;">Dört
+                            Disiplin,<br><span class="heading-accent">Tek Hedef</span></h1>
+                    </div>
+                    <div class="team-intro-right">
+                        <span class="eyebrow-text">Ekip Yapımız</span>
+                        <p class="main-paragraph" style="margin-bottom: 0;">
+                            Takımımız; mekanik, elektronik, yazılım ve organizasyon ekiplerinden oluşan disiplinler
+                            arası
+                            bir yapıya sahiptir. Başarıya ulaşmak için her bir ekibin uyum içinde çalışması kritik öneme
+                            sahiptir.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ekipler-grid">
+
+                    <!-- Mekanik -->
+                    <div class="ekip-card">
+                        <div class="ekip-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+                            </svg>
+                        </div>
+                        <h3 class="ekip-title">Mekanik Ekibi</h3>
+                        <p class="ekip-desc">
+                            Araçlarımızın mekanik tasarımından, şasi analizlerinden, hareketli aksamların
+                            geliştirilmesinden ve üretim (3D baskı, CNC vb.) süreçlerinden sorumludur.
+                        </p>
+                    </div>
+
+                    <!-- Elektronik -->
+                    <div class="ekip-card">
+                        <div class="ekip-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                                <circle cx="12" cy="12" r="4" />
+                            </svg>
+                        </div>
+                        <h3 class="ekip-title">Elektronik Ekibi</h3>
+                        <p class="ekip-desc">
+                            Sensör entegrasyonu, güç yönetimi sistemleri, özel PCB tasarımları ve araç içi haberleşme
+                            altyapısını geliştirir.
+                        </p>
+                    </div>
+
+                    <!-- Yazılım -->
+                    <div class="ekip-card">
+                        <div class="ekip-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <polyline points="16 18 22 12 16 6" />
+                                <polyline points="8 6 2 12 8 18" />
+                            </svg>
+                        </div>
+                        <h3 class="ekip-title">Yazılım Ekibi</h3>
+                        <p class="ekip-desc">
+                            Otonom sürüş algoritmaları, derin öğrenme tabanlı görüntü işleme, sensör verilerinin
+                            (LiDAR vb.) birleştirilmesi ve navigasyon sistemlerinden sorumludur.
+                        </p>
+                    </div>
+
+                    <!-- Organizasyon -->
+                    <div class="ekip-card">
+                        <div class="ekip-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                                <path d="M16 3.13a4 4 0 010 7.75" />
+                            </svg>
+                        </div>
+                        <h3 class="ekip-title">Organizasyon Ekibi</h3>
+                        <p class="ekip-desc">
+                            Sponsorluk görüşmeleri, sosyal medya yönetimi, takım bütçesinin planlanması ve PR
+                            çalışmalarını yürütür. Takımın dış dünya ile bağlantısını kurar.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="ekipler-cta">
+                    <button class="btn btn-primary" data-nav="basvuru">Aramıza Katıl</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== BAŞVURU (APPLICATION) PAGE ===== -->
+    <section id="basvuru-section" class="takimimiz-page" style="display: none;">
+        <div class="basvuru-header">
+            <span class="team-hero-badge">GELECEĞİ TASARLA</span>
+            <h1 class="main-heading basvuru-page-title">Bize Katıl</h1>
+        </div>
+
+        <div class="team-section-light">
+            <div class="team-container basvuru-container">
+                <div class="basvuru-form-container">
+                    <h2 class="main-heading basvuru-heading">Başvuru Formu</h2>
+                    <form id="apply-form" class="basvuru-form"
+                        onsubmit="event.preventDefault(); alert('Başvurunuz alındı! Yakında sizinle iletişime geçeceğiz.');">
+                        <div class="form-group">
+                            <label for="name">Ad Soyad</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-posta Adresi</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="team-select">İlgilendiğiniz Ekip</label>
+                            <select id="team-select" class="form-control" required>
+                                <option value="" disabled selected>Ekip Seçin</option>
+                                <option value="mekanik">Mekanik Ekibi</option>
+                                <option value="elektronik">Elektronik Ekibi</option>
+                                <option value="yazilim">Yazılım Ekibi</option>
+                                <option value="organizasyon">Organizasyon Ekibi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Kendinizden Bahsedin</label>
+                            <textarea id="message" class="form-control" rows="4"
+                                placeholder="Motivasyon mektubu..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary basvuru-submit">Başvuruyu Gönder</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SPONSORLARIMIZ (SPONSORS) PAGE ===== -->
+    <section id="sponsorlarimiz-section" class="takimimiz-page" style="display: none;">
+        <div class="basvuru-header">
+            <h1 class="main-heading basvuru-page-title">Sponsorlarımız</h1>
+        </div>
+
+        <div class="team-section-light">
+            <div class="team-container sponsorlar-container">
+                <div class="sponsors-grid">
+                    <div class="sponsor-card"><img src="15.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="16.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="17.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="18.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="19.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="20.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="21.png" alt="Sponsor"></div>
+                    <div class="sponsor-card"><img src="23.png" alt="Sponsor"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="main-footer">
+        <div class="footer-container">
+            <!-- Left Side -->
+            <div class="footer-left">
+
+                <div class="footer-contact">
+                    <div class="contact-block">
+                        <span class="contact-title">BİZE ULAŞIN</span>
+                        <p>ROCKWELL AUTOMATION LABORATORY,<br>ISTANBUL TECHNICAL UNIVERSITY, MASLAK,<br>34493, SARIYER,
+                            ISTANBUL</p>
+                    </div>
+                    <div class="contact-block">
+                        <span class="contact-title">MAİL ADRESİMİZ</span>
+                        <a href="mailto:iturake@gmail.com">iturake@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center -->
+            <div class="footer-center">
+                <img src="itu_logo_footer.png" alt="İTÜ Logosu" class="itu-logo-img">
+            </div>
+
+            <!-- Right Side -->
+            <div class="footer-right">
+
+                <div class="footer-social">
+                    <span class="social-title">HESAPLARIMIZ</span>
+                    <div class="social-icons">
+                        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24">
+                                <path
+                                    d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                            </svg></a>
+                        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                            </svg></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== COMPONENT PANEL (RIGHT SIDE) ===== -->
+    <aside id="component-panel" class="hidden-3d-mode">
+        <div class="panel-header">
+            <div class="panel-line panel-line-short"></div>
+            <span class="panel-title">BİLEŞENLER</span>
+            <div class="panel-line"></div>
+        </div>
+
+        <div class="component-list">
+
+            <!-- LIDAR -->
+            <div class="component-item" data-component="lidar" id="btn-lidar">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-lidar">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M12 1v4M12 19v4M1 12h4M19 12h4" />
+                            <path
+                                d="M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">LiDAR</span>
+                        <span class="btn-sublabel">Çevresel Haritalama</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-lidar">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            Önündeki <strong>180 dereceyi tarayan</strong> lazer mesafe sensörü.
+                            Varilleri ve engelleri tespit ederek güvenli geçiş koridorları oluşturur.
+                            Veriler "Occupancy Grid" haritasına anlık olarak işlenir.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANA TEKERLEKLER -->
+            <div class="component-item" data-component="wheels" id="btn-wheels">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-wheels">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="9" />
+                            <circle cx="12" cy="12" r="4" />
+                            <line x1="12" y1="3" x2="12" y2="8" />
+                            <line x1="12" y1="16" x2="12" y2="21" />
+                            <line x1="3" y1="12" x2="8" y2="12" />
+                            <line x1="16" y1="12" x2="21" y2="12" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">Ana Tekerlekler</span>
+                        <span class="btn-sublabel">Skid Steering Çekiş</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-wheels">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            REV NEO v1.1 fırçasız DC motorlar ve 25:1 oranlı MAXPlanetary redüktörlerle
+                            güçlendirilmiş <strong>diferansiyel sürüş</strong> sistemi.
+                            150mm çapında, PETG jantlı ve esnek TPU yüzeyli havasız (airless) özel üretim tekerlekler.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SARHOŞ TEKER -->
+            <div class="component-item" data-component="caster" id="btn-caster">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-caster">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="16" r="5" />
+                            <circle cx="12" cy="16" r="2" />
+                            <path d="M12 3v8" />
+                            <path d="M8 5h8" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">Sarhoş Teker</span>
+                        <span class="btn-sublabel">Ön Dengeleyici</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-caster">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            Dönüş sürtünmesini azaltmak ve dar alanlarda manevra kabiliyetini artırmak için
+                            aracın ön kısmına yerleştirilmiş <strong>serbest dönüşlü (caster) tekerlek</strong> modülü.
+                            Sıfır yarıçaplı dönüşlerde stabiliteyi garanti eder.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KAMERALAR -->
+            <div class="component-item" data-component="cameras" id="btn-cameras">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-cameras">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="2" y="6" width="20" height="12" rx="2" />
+                            <circle cx="12" cy="12" r="3" />
+                            <circle cx="12" cy="12" r="1" />
+                            <path d="M17 6V4a1 1 0 0 0-1-1h-2" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">Kameralar</span>
+                        <span class="btn-sublabel">Şerit Tespiti</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-cameras">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            <strong>UNet derin öğrenme modeli</strong> ve <strong>renk filtresi</strong> kullanarak
+                            beyaz ve renkli çizgileri ayırt eden kamera sistemi.
+                            Parkur sınırlarını algılayarak aracın şerit içinde kalmasını sağlar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HAVALANDIRMA -->
+            <div class="component-item" data-component="ventilation" id="btn-ventilation">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-ventilation">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">Havalandırma Izgarası</span>
+                        <span class="btn-sublabel">Termal Yönetim</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-ventilation">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            Ana elektronik donanımların ürettiği ısının dışarı atılmasını sağlayan optimize edilmiş ısı
+                            tahliye menfezi.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAZER ATIŞ SİSTEMİ (KAYRA) -->
+            <div class="component-item" data-component="laser" id="btn-laser" style="display: none;">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-laser">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="3" fill="currentColor" />
+                            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">Lazer Atış Sistemi</span>
+                        <span class="btn-sublabel">Hedefleme Modülü</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-laser">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            Yüksek hassasiyetli <strong>lazer atış sistemi</strong>. Belirlenen hedeflere optik
+                            yönlendirme ile nişan alma ve işaretleme yeteneğine sahiptir.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPS (KAYRA) -->
+            <div class="component-item" data-component="gps" id="btn-gps" style="display: none;">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-gps">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                            <circle cx="12" cy="9" r="2.5" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">GPS Anteni</span>
+                        <span class="btn-sublabel">Küresel Konumlandırma</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-gps">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            Açık alanlarda yüksek hassasiyetle konum tespiti sağlayan <strong>RTK destekli GPS
+                                modülü</strong>. Milimetre seviyesinde doğrulukla devriye rotalarını takip etmeyi mümkün
+                            kılar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERVANE (İHA) -->
+            <div class="component-item" data-component="propeller" id="btn-propeller" style="display: none;">
+                <button class="component-btn" aria-expanded="false" aria-controls="detail-propeller">
+                    <div class="btn-icon-wrap">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                            <path d="M12 14c0 3 1.5 6 4 6c1.5 0 2 -1.5 1.5 -3c-.5 -1.5 -2.5 -3 -5.5 -3z" />
+                            <path d="M12 10c0 -3 -1.5 -6 -4 -6c-1.5 0 -2 1.5 -1.5 3c.5 1.5 2.5 3 5.5 3z" />
+                            <path d="M14 12c3 0 6 -1.5 6 -4c0 -1.5 -1.5 -2 -3 -1.5c-1.5 .5 -3 2.5 -3 5.5z" />
+                            <path d="M10 12c-3 0 -6 1.5 -6 4c0 1.5 1.5 2 3 1.5c1.5 -.5 3 -2.5 3 -5.5z" />
+                        </svg>
+                    </div>
+                    <div class="btn-text">
+                        <span class="btn-label">Pervane</span>
+                        <span class="btn-sublabel">İtki Sistemi</span>
+                    </div>
+                    <span class="btn-arrow">›</span>
+                </button>
+                <div class="component-detail" id="detail-propeller">
+                    <div class="detail-inner">
+                        <p class="detail-text">
+                            İHA'nın havada asılı kalmasını ve yüksek manevra kabiliyeti ile hareket etmesini sağlayan
+                            <strong>aerodinamik pervane</strong> sistemi.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>

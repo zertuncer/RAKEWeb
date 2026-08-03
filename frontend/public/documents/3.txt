@@ -1,0 +1,992 @@
+ITU RAKE
+Istanbul Technical University IGVC 2026 – AYAZ
+
+Advisor: Doç. Dr. Ali Fuat Ergenç
+Team Captain: Ahmet Emre Aktaş (aeaktas33@gmail.com)
+Date Submitted: May 15th, 2026
+
+STATEMENT OF INTEGRITY
+I certify that the Ayaz vehicle described in this report was prepared by the students named below,
+and
+this work is equivalent to the project in an advanced design course. This report was prepared by the
+ITU
+RAKE team under my guidance.
+
+Advisor: Assoc. Prof. Ali Fuat Ergenç
+
+Team Members
+Ahmet Emre Aktaş - aeaktas33@gmail.com
+Semih Adin Turhan - satmadin13@gmail.com
+Melih Emre Güney - melihemreguney05@gmail.com
+Mustafa Ata Abatay - mabatay58@gmail.com
+Yusuf Zer Tuncer - zertuncer@gmail.com
+
+1. System and Subsystem Requirements
+1.1 System Engineering Process
+1.2 Technical and Operational Requirements
+1.3 AutoNav Challenge Requirements
+2. Mechanical Design
+2.1 Overview
+2.2 Drive System and Significant Mechanical Components
+2.3 Frame Structure, Housing, and Structure Design
+2.4 Suspension
+2.5 Thermal Management and Weather Proofing
+2.6 Requirements for Mechanical Design
+3. Safety
+3.1 Safety During Transportation, Parking, and Charging
+3.2 Physical and Mechanical Safety
+3.3 Electrical and Hardware-Level Safety
+3.4 Software and Autonomous Safety
+3.5 Requirements for Safety
+4. Electrical/Electronic Design
+4.1 Overview
+4.2 Strategic Decisions in Electrical and Electronic Component Selection
+4.3 Description of the Significant Power and Electronic Components
+4.4 Power Distribution and Management System
+4.5 Requirements for Electronical Design
+5. Perception
+5.1 Lane and Obstacle Identification
+5.2 Internal Course Representation: Occupancy Grid Map
+5.3 Requirements For Perception Design
+6. Driving Logic
+6.1 Overview
+
+6.2 Lane Tracking and Obstacle Avoidance
+6.3 Navigation & Fusion
+6.4 Path Planning and Motion Control
+6.5 Command Generation and Monitoring
+6.6 Complex Scenarios
+6.7 Requirements for Driven Logic
+6.8 Performance Matrix and Evaluation
+7. Key Performance Indicators
+7.1 Localization Precision
+7.2 Obstacle Detection Rate
+7.3 End-to-End Latency
+7.4 Autonomous Velocity Regulation
+8. Analysis of Complete Vehicle
+8.1 Lessons Learned During Construction and System Integration
+8.2 Top Hardware Failures That Would Prevent Competition Success and Mitigations
+8.3 Safety, Reliability, and Durability Considerations
+8.4 Key Hardware Failure Points and On-Site Resolution Strategies
+8.5 Virtual Environment Testing and Gazebo Simulation
+8.6 Physical Testing to Date
+8.7 Predicted Performance Analysis
+8.8 Software Testing Bug Tracking and Version Control
+9. Cyber Security Analysis
+9.1 Wireless Network Vulnerabilities
+9.2 Denial of Service on Sensor Data
+9.3 Unauthorized Physical Access to the Debug Port
+
+1. System and Subsystem Requirements
+1.1 System Engineering Process
+The development process of AYAZ was carried out based on a standard Systems Engineering Cycle
+(V-Model) used in the design of complex autonomous systems. This process consists of the following
+stages, ranging from determining theoretical requirements to physical testing:
+Requirement Identification: In the initial stage, the IGVC AutoNav Challenge rules and data from
+previous years were analyzed to determine the “Critical Success Factors.” Within this scope, highlevel system requirements such as vehicle speed (hardware-limited Maximum Theoretical Speed:
+1.78 m/s with a 1:25 reduction ratio), climbing capability (15% incline), and safety protocols (E-Stop
+accessibility) were defined.
+Subsystem Breakdown: The high-level requirements were distributed into customized objectives for
+the Mechanical, Electronics, and Software subteams. For example, the system requirement of
+“Continuous Data Flow” was transformed into sub-requirements such as the design of a “900 mm
+rigid sensor mast” for the mechanical team and a “low-latency ROS2 communication architecture”
+for the software team.
+Iterative Design and Prototyping: In line with the determined requirements, CAD models
+(SolidWorks) and electronic circuit schematics were created. In particular, rapid prototyping studies
+conducted on 3D-printed fixtures and the birch plywood chassis structure enabled us to verify
+whether the design met the requirements before physical manufacturing.
+Testing & Validation: After each subsystem was produced, it was subjected to individual tests; in the
+final stage, Gazebo simulations and field tests confirmed that the entire vehicle met the “Integrated
+System Requirements.”This structured process ensured that both the hardware and software layers
+of AYAZ operated in complete harmony with each other and guaranteed a high level of compliance
+with competition standards.
+1.2 Technical and Operational Requirements
+Mechanical Requirements: The mechanical design of the vehicle focuses on the criteria of “Vibration
+Damping” and “Accessibility” in order to ensure operational continuity under rough terrain conditions.
+The birch plywood used in the chassis aims to absorb high-frequency vibrations, allowing sensitive
+optical sensors to remain within the < 1.5G acceleration limit. In addition, thanks to the semi-modular
+body design, access time to critical components has been reduced to under 60 seconds, enabling rapid
+maintenance and repair in field conditions.
+Safety Requirements: The safety architecture is built upon “Hardware-Level Emergency Stop” and
+“Mechanical Protection” in full compliance with IGVC Rule II.1. The E-Stop system is designed to
+physically cut motor power in under 100 ms, independently of any software failure. For environmental
+safety, all moving parts are 100% isolated with polycarbonate enclosures, and the stopping distance
+has been optimized to remain below 0.5 meters while operating at full speed.
+Electrical and Electronic Requirements: The requirements of the electronic system were determined
+in line with the principles of “Power Autonomy” and “Data Integrity.” The high-capacity battery
+configuration provides a minimum of 4 hours of uninterrupted operation under full sensor and
+
+processor load. The CAN-Bus protocol used for the transmission of critical odometry and speed data
+maintains the vehicle’s positioning accuracy by keeping data packet loss caused by electrical noise
+below 1%.
+1.3 AutoNav Challenge Requirements
+Perception Requirements
+•
+
+•
+
+Semantic Lane Segmentation: In order for the vehicle to remain within the white and
+colored track boundaries, it must distinguish lanes from image data in real time. Our
+UNet-based deep learning model performs lane detection through pixel-level
+segmentation under varying lighting conditions and aims to achieve an accuracy rate
+above 90% in field tests.
+Reliable Obstacle Detection: Detecting pylons and other obstacles on the track from a
+safe maneuvering distance is a critical requirement. By utilizing the 360-degree scanning
+data of the LiDAR, obstacles are aimed to be detected with 98% accuracy from a
+minimum range of 5 meters and processed into the occupancy grid.
+
+Driving Logic Requirements
+•
+
+•
+
+Real-Time Path Re-calculation: In situations involving dynamic obstacles or route
+changes, the vehicle must react without interruption. Our driving logic aims to minimize
+system latency and provide smooth navigation by generating a new route output in
+under 100 ms from the moment sensor data enters the system.
+Safe Velocity Regulation: Compliance with the speed limits defined under IGVC Rule II.3
+and ensuring environmental safety are fundamental driving requirements. The vehicle
+monitors its actual speed by fusing encoder and GPS data and maintains a stable
+autonomous cruising speed through a software-imposed limit of 1.0 m/s.
+
+Key Performance Indicators
+•
+
+•
+
+Localization Precision: The ability of the vehicle to reach the assigned target points
+(waypoints) in the global coordinate system with minimal deviation is the most
+important criterion for measuring system success. Our primary performance indicator is
+maintaining the difference between the EKF (Extended Kalman Filter) outputs and the
+actual ground position below 15 cm.
+High-Torque Ramp Navigation: Successfully traversing inclined surfaces on the track
+without speed loss or motor strain is an operational success metric. The ability of our
+25:1 reduction ratio motor system to climb 15-degree inclines under full load while
+maintaining speed has been defined as our main performance objective.
+
+2. Mechanical Design
+2.1 Overview
+Ayaz is an autonomous ground vehicle designed with the principles of lightweight construction,
+modularity, and strategic optimization of the center of gravity (CoG). The overall dimensions of the
+vehicle (excluding the sensor mast) are determined as 105 cm in length, 62 cm in width, and 45 cm
+in height. In order to improve portability and battery efficiency, the unloaded weight of the vehicle
+(excluding payload) is only 16 kg.The main chassis structure is constructed using 10 mm Birch
+Plywood due to its high vibration damping capability and structural rigidity. The outer body consists
+
+of 5 mm solid polycarbonate panels with high impact resistance. This hybrid structure protects the
+internal components while also providing rapid access to the system through the service cover.
+2.2 Drive System and Significant Mechanical Components
+The vehicle’s drive system utilizes differential drive (skid steering) kinematics, providing high
+maneuverability on rough terrain. The system is built around two REV NEO v1.1 brushless DC motors
+selected as off-the-shelf components. In order to increase motor torque and improve low-speed
+control, a MAXPlanetary gearbox system consisting of two 5:1 planetary gear sets was used,
+achieving a total reduction ratio of 25:1.Hex shafts were preferred in the power transmission system
+to prevent stripping under high loads, and 3D-printed PETG bearing blocks fixed to the chassis were
+designed to reduce bending moments on the motor shafts. At the rear section, custom-designed
+airless wheels with a diameter of 150 mm, consisting of PETG rims and flexible TPU tire surfaces, are
+used, while a caster wheel that reduces turning friction is located at the front section.
+2.3 Frame Structure, Housing, and Structure Design
+The body panels of Ayaz were not permanently bonded in order to facilitate maintenance; instead,
+they were mechanically attached to the chassis using PETG 3D-printed corner connection elements.
+The mandatory 20 lb (~9.07 kg) payload required by the competition rules was positioned close to
+the rear drive axle in order to increase traction and prevent slipping during zero-radius turns. With
+this configuration, the total competition mass of the vehicle is approximately 25.1 kg.The 900 mmlong 20x20 aluminum sigma profile sensor mast located at the rear section serves as a rigid support
+structure for cameras, GPS, and communication modules. The Visual Safety Light and the hardwarebased Mechanical E-Stop button were also mounted on this mast for accessibility and visibility
+purposes.
+2.5 Thermal Management and Weather Proofing
+To prevent hardware overheating, negative-pressure airflow is provided through ventilation
+channels and fans located on the front panels. In order to maintain operational capability under light
+rain (drizzle) conditions, the panels were assembled in a modular “tight-tolerance dry fit” structure.
+During the final setup at the competition area, marine-grade silicone sealant will be applied to the
+panel joints, and downward-angled louvers preventing water ingress will be added to the fan inlets.
+2.6 Requirements for Mechanical Design
+Mechanical
+Requirement
+
+1. Hardware
+Speed
+Limits
+
+Driven By
+
+IGVC Max/Min
+Speed
+Regulations
+
+Target Value
+
+0.45 m/s < V_max
+< 2.23 m/s (1
+mph - 5 mph)
+
+Actual Measured
+Value
+
+Maximum
+Theoretical
+Speed: 1.78 m/s
+(3.98 mph)
+
+Discussion
+With the 1:25 gear
+reduction ratio and
+150 mm wheel
+diameter selection,
+the vehicle is
+hardware-limited
+from exceeding
+competition speed
+limits, ensuring safe
+operational speed.
+Thanks to the 1:25
+ratio, sufficient load
+
+2. Gradeability
+& Traction
+
+3. Geometric
+Footprint &
+CoG
+
+IGVC 15% Ramp
+Requirement and
+25.1 kg Gross
+Weight
+
+No loss of
+traction on a 15%
+incline
+
+High Torque
+Margin (2.6 Nm
+stall torque per
+motor)
+
+IGVC Dimension
+Rules and Skid
+Steering
+Efficiency
+
+Length < 213 cm
+Width > 61 cm
+Center of gravity
+close to the rear
+axle
+
+Dimensions:
+105x62 cm CoG:
+~12 cm distance
+to the rear axle
+
+is transferred to the
+wheels,
+guaranteeing that
+the fully loaded 25.1
+kg vehicle can climb
+15% grass ramps
+without strain.
+With a width of 62
+cm, the vehicle
+remains close to the
+minimum size limit,
+facilitating passage
+through narrow
+obstacle areas.
+Positioning the
+payload at the rear
+eliminates the risk
+of wheelies.
+
+Table 1: Mechanical Requirements Matrix
+3. Safety
+Ayaz has been designed with a multi-layered safety architecture in order to maximize both operator
+and environmental safety. In accordance with IGVC regulations, the safety strategies have been
+addressed under four main categories: transportation/parking, mechanical, electrical, and software
+stages
+3.1 Safety During Transportation, Parking, and Charging
+The physical safety of the vehicle during transportation and parking is ensured by 5 mm thick solid
+polycarbonate body panels, which provide protection against external impacts, and a 10 mm birch
+plywood chassis with vibration damping properties. These modular enclosures isolate all moving
+components (gears and motor shafts) by 100%, preventing physical contact risks and external
+interference.In order to ensure the electrical safety of the system while charging the vehicle, a
+custom-designed Power Distribution Board (PDB) is utilized. This board electrically isolates the high
+current draws in the motor lines from sensitive logic circuits, eliminating hazards that may arise from
+voltage fluctuations during charging.
+3.2 Physical and Mechanical Safety
+Mechanical E-Stop: In full compliance with IGVC rules, a hardware mechanical E-Stop button is
+located at the center rear of the vehicle on a rigid aluminum profile tower (mast) positioned at a
+height of 90 cm (approximately 3 feet). This button is red-colored, push-to-stop type, and has a
+minimum diameter of 1 inch, as required by the rulebook. The button is mechanically protected by
+the tower to prevent damage in the event of a possible rollover.
+Rollover Protection: This 90 cm rigid tower not only carries sensors but also serves as a safety
+barrier by keeping electronic components and the E-Stop button elevated above the ground in the
+event of a rollover, thereby protecting them from impact.
+3.3 Electrical and Hardware-Level Safety
+
+Independent Power Kill: When the mechanical E-Stop is triggered, the system physically cuts the
+main power line to the motor drivers through a relay. Since this process is executed at the hardware
+level, it is completely unaffected by software failures.
+Continuous Perception Logic Even when the drive power is cut by the E-Stop, the NVIDIA Jetson Orin
+and sensors (LiDAR, camera) remain powered. This allows the vehicle to continue perceiving its
+environment and recording data even after loss of propulsion, enabling post-incident failure analysis
+and eliminating system restart time..
+Wireless E-Stop & Failsafe Communication: The minimum 100 feet range wireless emergency stop
+system required by IGVC rules is implemented using an HC-12 RF module, which operates
+independently from the main Wi-Fi network. Additionally, if the communication link between the
+remote control unit and the vehicle is lost, the system automatically enters “Safe Stop” mode and
+locks the motors..
+Safety Light: The minimum 100 feet range wireless emergency stop system required by IGVC rules is
+implemented using an HC-12 RF module, which operates independently from the main Wi-Fi
+network. Additionally, if the communication link between the remote control unit and the vehicle is
+lost, the system automatically enters “Safe Stop” mode and locks the motors.
+3.4 Software and Autonomous Safety
+Obstacle Inflation Layers: In the software algorithm, a virtual “buffer zone” (inflation layer) is
+defined around obstacles; in order to minimize collision risk, the vehicle plans its route such that it
+does not approach obstacles closer than this safe distance.
+Speed Limiting: Although the system’s mechanical capability allows a speed of 1.5 m/s, the
+autonomous driving speed is software-limited to 1.0 m/s to ensure environmental safety, sufficient
+stopping capability, and compliance with regulations.
+3.5 Requirements for Safety
+Safety
+Requirement
+
+Driven By
+
+E-Stop Power Cutoff Time
+IGVC E-Stop
+Rules
+
+Target Value
+
+Actual
+Measured
+Value
+
+Discussion
+
+Power cut-off
+within < 0.5
+seconds
+
+Relay response< The emergency
+100 ms
+stop command
+bypasses the
+software and occurs
+instantly at the
+hardware level.
+
+Stopping Distance
+
+Environmental
+Safety &
+Maneuverabilit
+y
+
+Maneuverabilit
+y< 0.5 meters at
+full speed
+
+Stop under 0.5
+meters at full
+speed
+
+Restricted speed
+and the high-torque
+drive system safely
+stop the vehicle
+within the specified
+distance.
+
+Wireless E-Stop
+
+IGVC Wireless
+
+Range >= 100
+
+Signal
+
+The RF module,
+
+Range
+
+E-Stop Rules
+
+feet
+
+transmission
+over 100 feet
+(via HC-12)
+
+independent of the
+main API, ensures
+motor lockout in
+case of
+disconnection.
+
+Table 2: Safety Requirements Matrix
+4. Electrical/Electronic Design
+4.1 Overview
+Ayaz is built on a modular electronic architecture that efficiently distributes computational load. In
+the system, an NVIDIA Jetson Orin is responsible for executing high-level autonomous tasks (such as
+image processing and path planning), while an STM32F407 microcontroller handles low-level
+control, sensor data acquisition, and safety monitoring. This decoupled structure increases system
+stability while minimizing processing latency.
+4.2 Strategic Decisions in Electrical and Electronical Component Selection
+NVIDIA Jetson Orin: It was selected as the main processing unit due to its high GPU capacity in order
+to perform deep learning-based segmentation and 360° LiDAR data fusion in real time (low-latency).
+REV Robotics NEO & SparkMAX (CAN-Bus): Brushless motors and the CAN-Bus protocol were used
+in the drive system to reduce cable complexity, while ensuring reliable transmission of wheel
+odometry and motor state data.
+Hybrid Communication Line: A high-bandwidth Wi-Fi API is used for the main telemetry stream,
+while a Wi-Fi-independent HC-12 RF module provides safe manual control and emergency
+redundancy.
+Hardware Safety: The emergency stop (E-Stop) system is designed as a relay-based hardware
+interlock. This ensures that motor power is physically cut while maintaining power to the Jetson Orin
+and sensors, thereby eliminating system restart time.
+4.3 Description of the Significant Power and Electronic Components
+
+Ayaz’s core electronic components
+consist of an NVIDIA Jetson Orin, an
+STM32F407 microcontroller, REV
+SparkMAX motor controllers, REV NEO
+brushless DC motors, sensors, and
+communication modules. The Jetson
+processes sensor data and navigation
+algorithms, while the STM32 controls
+the motor drivers via CAN Bus.
+
+4.4 Power Distribution and
+Management System
+Ayaz is powered by a 3S 11.1V
+Li-Po battery. Power distribution
+is handled by a custom-designed
+Power Distribution Board. This
+board helps protect the system
+against voltage fluctuations and
+electrical noise by separating
+high-current motor lines from
+sensitive logic circuits.
+The electronic system integrates
+perception, processing,
+communication, and motor
+control units. Camera, LiDAR,
+GPS, IMU, and odometry data are processed by the Jetson Orin. Motion commands are then
+transmitted to the STM32 and subsequently to the SparkMAX motor drivers, enabling real-time
+control of the vehicle.
+When activated, Ayaz is equipped with a relay-based emergency stop system that directly cuts
+power to the motor drivers. The Jetson Orin and sensors remain operational, allowing the system to
+continue data logging and analyze the cause of the stop.
+For autonomous navigation, Ayaz uses two cameras, a 2D LiDAR, GPS, IMU, and wheel odometry.
+These sensors provide the necessary data for perception, obstacle detection, localization, mapping,
+and path planning.
+4.5 Requirements for Electrical Design
+
+Electrical/Electronic Expected Criteria
+Requirement
+
+Hardware/Solution
+in Ayaz
+
+Discussion
+
+Power Supply and
+Distribution
+
+High discharge
+capacity, clean
+voltage lines,
+electrical isolation.
+
+3S 11.1V Li-Po
+Battery and Custom
+Design PDB
+
+High-current lines are
+isolated to prevent voltage
+fluctuations and electrical
+noise at the logic level (12V5V etc.).
+
+Motor
+Communication
+
+Noise resistance,
+lossless data and
+odometry
+transmission,
+minimum wiring.
+
+CAN-Bus (REV
+SparkMAX drivers &
+NEO brushless
+motors)
+
+The processing load is
+divided into modules; while
+Jetson handles heavy
+algorithms, STM32 controls
+the motors without delay.
+
+Remote
+Communication
+
+High bandwidth and
+emergency
+redundancy
+
+Wi-Fi API (Main) +
+HC-12 RF Module
+(Backup)
+
+While high data flow is
+provided via Wi-Fi, the HC-12
+module ensures manual and
+safe intervention in case of
+potential connection losses.
+
+Table 3:Electrical and Electronic Requirements Matrix
+5. Perception
+5.1 Lane and Obstacle Identification
+Ayaz uses image processing and LiDAR laser scanning data simultaneously in order to perceive its
+environment and navigate safely through the AutoNav course.
+Lane Detection: Camera data from the sensor mast is processed using a UNet-based deep learning
+model for semantic segmentation, as described in Section 1.3, in order to distinguish white and
+colored course boundaries in real time. The lane pixels obtained from the model are transformed
+into a 2D plane using Inverse Perspective Mapping (IPM).
+Obstacle Detection: The LiDAR sensor scans the vehicle’s full 360-degree surroundings, providing
+precise distance and positional information of obstacles. The characteristic obstacles of the AutoNav
+course, such as road construction barrels and 2-foot diameter simulated potholes, are also detected
+with support from camera data. LiDAR-camera fusion enables not only the localization of obstacles
+but also the estimation of their spatial extent, allowing the generation of safe navigation corridors.
+5.2 Internal Course Representation: Occupancy Grid Map
+The perceived data is converted into an "Occupancy Grid Map" format, which maps the vehicle's
+surroundings and is used by the driving logic.
+Creation and Update: As the vehicle moves, the mapping algorithm—supported by wheel odometry
+and IMU data—updates the current occupancy map. Lane data from the segmentation model are
+processed as "impassable boundaries" (walls), while physical obstacles such as barrels and fake
+potholes are integrated into the map as "high-cost cells."
+Data Fusion: Precise distance data provided by LiDAR and lane/pothole data from the camera are
+merged within a common global coordinate system. This process maintains a continuous, live, and
+up-to-date 2D representation of the vehicle's environment.
+5.3 Requirements for Perception Design
+Processing Power: The selection of NVIDIA Jetson Orin’s high GPU capacity has enabled the realtime execution of complex deep learning models, such as UNet, in the field.
+Sensor Placement: The 90 cm high tower and the optimized 52-degree camera angle fulfill the
+requirement for perceiving lanes and fake potholes from a wider perspective, while also minimizing
+blind spots in the system.
+
+Perception
+Requirement
+
+Driven by
+
+Target Value
+
+Actual Measured
+Value
+
+Discussion
+
+Lane
+Segmentation
+Accuracy
+
+AutoNav
+Lane
+Violation
+Rules
+
+> 90% Accuracy
+under different
+lighting conditions
+
+92% Segmentation
+Accuracy in
+software tests
+
+Our UNet model successfully
+detected lanes with a
+performance exceeding the
+required threshold.
+
+Obstacle
+Detection
+Sensitivity
+
+Collision
+and
+Safety
+Rules
+
+> 98% Sensitivity at 98.4% Sensitivity
+a 5-meter range
+with LiDAR +
+Camera fusion
+
+Our UNet model successfully
+detected lanes with a
+performance exceeding the
+required threshold.
+
+Table 4: Perception Requirements and Performance Comparison Matrix
+6. Driving Logic
+6.1 Overview
+Ayaz’s driving logic is designed to perform autonomous navigation within the dynamic and static
+obstacle-filled environment of the IGVC 2026 AutoNav course. The system blends perception and
+localization outputs for lane following, obstacle avoidance, and high-precision GPS waypoint
+navigation. The architecture consists of a unified 2D Occupancy Grid Map, Extended Kalman Filter
+(EKF) localization, A path planning*, and Pure Pursuit trajectory tracking components.
+6.2 Lane Tracking and Obstacle Avoidance
+Ayaz defines the driving area by processing LiDAR and camera data. Semantic segmentation data
+from the cameras identify lane boundaries, while LiDAR provides precise distance information of
+surrounding obstacles. These data points are merged into a common occupancy map to mark safe
+drivable areas and obstacle zones (barrels, fake potholes, etc.) in real-time.
+6.3 Navigation & Fusion
+The vehicle utilizes GPS, IMU, and wheel odometry data to determine its position with millimeter
+precision. These heterogeneous data sources are fused using the EKF algorithm to estimate the
+vehicle's position and heading within the coordinate system with high accuracy. The driving logic
+uses this fusion output to steer the vehicle toward target GPS waypoints
+6.4 Path Planning and Motion Control
+The A algorithm* calculates the shortest and safest path on the updated occupancy map while
+avoiding obstacles. When a new obstacle (such as a barrel in the middle of the road) is detected, the
+route is dynamically updated in less than 100 ms. This calculated path is converted into motor
+commands by the Pure Pursuit algorithm, ensuring the vehicle follows the trajectory smoothly and
+steadily.
+
+6.5 Command Generation and Monitoring
+Navigation commands are computed on the NVIDIA Jetson Orin and transmitted to the STM32F407
+microcontroller via the UART protocol. While the STM32 manages the SparkMAX motor drivers over
+CAN-Bus, it simultaneously sends odometry feedback from the motors back to the Jetson. This
+closed-loop structure ensures continuous monitoring of the vehicle’s motion.
+6.6 Complex Scenarios
+Ayaz performs route re-planning in challenging situations such as ramps, dead ends, traps, and
+switchbacks.
+Center Islands: When encountering islands in the middle of the path, the A* algorithm calculates the
+costs on both sides of the island to select the safest passage corridor.
+Ramp Navigation: Changes in the pitch angle detected by IMU data identify that the vehicle is on a
+ramp; the 25:1 reduction ratio drive system, combined with software-based torque balancing,
+allows the ramp to be cleared without any loss of speed.
+6.7 Requirements for Driven Logic
+
+Category
+
+Criterion
+
+Obstacle
+Management
+
+Inflation Radius
+
+Localization
+
+Waypoint
+Proximity
+Tolerance
+
+0.5 Meter Radius
+
+Recovery
+Behavior
+
+Planned Path <
+0.25m
+
+Emergency/Recov
+ery
+
+Configuration
+Value
+
+0.3-0.7 Meters
+
+Engineering Rationale and Description
+
+The vehicle's physical track width
+(0.67m) is taken as a reference in the
+main planning layer (Vision Map); a
+safety margin of approximately ~0.23
+meters is added to minimize collision
+risk.
+Standard GPS signal fluctuations (noise)
+in open areas are tolerated, allowing the
+node to skip and head to the next target
+once the vehicle comes within 0.5
+meters of the target center.
+The system uses spatial triggers instead
+of delay timers. If the safe path distance
+generated by the A algorithm* falls
+below 5 grid units (~25 cm), the system
+detects a dead end (trap) and
+immediately switches to recovery
+(reverse maneuver) mode.
+
+Table 5: Driving Logic Configuration Requirements Matrix
+
+6.8 Performance Matrix and Evaluation
+The performance of AYAZ's autonomous driving algorithms was measured based on telemetry data
+obtained from Gazebo simulations and processing load analyses from physical field tests. The
+compliance of the system with the configuration limits defined in Section 6.7 is presented in the
+matrix below:
+Evaluated Metric
+
+Test Criterion
+
+Dynamic Obstacle
+Avoidance
+
+Gazebo Simulation
+Result
+
+Physical Field Test
+Result
+
+Number of violations of
+the 0.3–0.7 m safety
+zone
+
+0 violations
+
+0 violations
+
+Waypoint Accuracy
+
+Entering the target
+waypoint within a 0.5 m
+radius
+
+0.12 m average
+deviation
+
+0.38 m average
+deviation
+
+Trap Resolution
+
+Recovery mode
+activation time
+
+2.8 s reaction time
+
+4.5 s reaction time
+
+System Latency
+
+A* route recalculation
+time
+
+38 ms average
+
+False positive obstacle
+detection rate
+
+1.5% error rate
+
+Sensor Fusion Stability
+
+55 ms average
+4.2% error rate
+
+Table 5: Autonomous Driving Performance Evaluation Matrix
+Technical Evaluation and Optimization Notes
+•
+
+•
+
+•
+
+Low Latency:
+The path-planning decision loop operates at 10 Hz. Tests on the NVIDIA Jetson Orin AGX
+showed an average end-to-end computation time of 55 ms after Python and NumPy
+optimizations, remaining well below the 100 ms target.
+Localization Precision:
+The system uses a 0.5 m waypoint tolerance. While simulation results showed minimal
+deviation, field tests remained within a maximum deviation band of 45 cm due to outdoor
+GPS fluctuations, which is acceptable for safe autonomous navigation.
+Spatial Recovery:
+Instead of time-based recovery logic, the system uses spatial triggers to detect traps such as
+narrow passages or dead ends. When the available free space for safe path generation falls
+below a critical threshold, the vehicle activates recovery behavior and moves back to a safer
+area.
+
+•
+
+Fusion Stability:
+Sensor fusion is performed using a logical OR rule between LiDAR and camera-based
+occupancy data. If either sensor marks a grid cell as occupied, the final map treats that cell
+as blocked. This conservative approach improves safety and reduces the effect of temporary
+vision losses or sensor spikes.
+
+7. Key Performance Indicators
+Ayaz’s autonomous navigation performance is evaluated using three main KPIs: localization
+precision, obstacle detection rate, and end-to-end latency.
+7.1 Localization Precision
+The target localization error was set below 15 cm by comparing EKF outputs with the real ground
+position. Gazebo tests showed an average deviation of 12 cm, while field tests resulted in 38
+cm average deviation due to outdoor GPS noise. Although this exceeds the ideal target, it remains
+within the 0.5 m waypoint tolerance, allowing safe waypoint navigation.
+7.2 Obstacle Detection Rate
+The target was to detect barrels and simulated potholes within 5 m with at least 98% accuracy using
+LiDAR and camera fusion. Log analysis of the occupancy grid showed a measured detection accuracy
+of 98.4%. This result confirms the effectiveness of the 90 cm sensor mast and Boolean OR fusion
+approach.
+7.3 End-to-End Latency
+The target latency from raw sensor processing to A* route recalculation was set below 100 ms.
+ROS2 timestamp analysis on the NVIDIA Jetson Orin AGX showed 38 ms latency in simulation and 55
+ms under full field-test load. These results confirm that the system reacts fast enough for safe
+navigation at 1.0 m/s.
+7.4 Autonomous Velocity Regulation
+• Objective and Rationale: Per IGVC rules, to ensure safe maneuvering and environmental safety,
+the autonomous cruising speed of the vehicle is targeted to be fixed at the 1.0 m/s limit (satisfying
+the minimum 1 mph rule).
+• Measurement Method: Measured through the real-time analysis of wheel odometry (encoder)
+speed data, received from the motor drivers, via the Jetson.
+• Actual Value and Evaluation: The average cruising speed of the vehicle was measured at 0.98 m/s.
+Reaching the desired 1.0 m/s target with a 2% tolerance reveals that the PID control and speed
+regulation logic of the motors (25:1 reduction) prevent speed fluctuations even on rough terrain.
+8. Analysis of Complete Vehicle
+8.1 Lessons Learned During Construction and System Integration
+The system integration and prototyping processes demonstrated the critical importance of power
+management and signal integrity in Ayaz.
+•
+
+Power Architecture and Noise Management: In the early stages, multiple independent
+voltage regulators were used to meet the voltage requirements of different hardware
+components. However, testing showed that this structure generated high-frequency
+electrical noise across the system and caused fluctuations in sensitive sensor data. As a
+result, it was concluded that the power architecture should be designed from the beginning
+as a centralized and simplified system with minimal regulator usage.
+
+•
+
+Logic-Level Compatibility Issues: It was observed that using standard MOSFETs to drive
+high-current loads directly with 3.3V/5V logic signals from the STM32 caused overheating
+and power losses. This experience demonstrated that Logic-Level MOSFETs are necessary for
+field reliability in microcontroller-based switching systems.
+
+8.2 Top Hardware Failures That Would Prevent Competition Success and Mitigations
+During testing, two critical hardware/communication failures that could interrupt autonomous
+operation were identified, and permanent mitigation measures were implemented.
+System Failure Caused by E-Stop Triggering (Back-EMF Failure)
+•
+
+•
+•
+
+Hardware Failure: When the E-Stop was triggered, the energy stored in the motor relay coils
+generated a high-voltage back electromotive force, causing the STM32 microcontroller to
+lock up and the system to become uncontrollable.
+Implemented Modification: The Power Distribution Board was revised, and reverse-biased
+flyback diodes were added in parallel with the relay coils to suppress the induced current.
+Was Recurrence Prevented?: Yes. After this modification, no microcontroller lock-up or
+system reset occurred during subsequent E-Stop tests.
+
+CAN-Bus Failure and Synchronization Loss
+•
+
+•
+
+•
+
+Hardware/Communication Failure: During initial power-up, CAN-Bus communication did
+not always initialize automatically, and electrical noise occasionally caused Error Frames that
+interrupted communication with the motor controllers.
+Implemented Modification: A delay was added to the STM32 initialization sequence to
+allow the motor controllers to become fully ready before CAN communication started. In
+addition, Automatic Bus-Off Management was enabled through STM32CubeMX.
+Was Recurrence Prevented?: Yes. The system now establishes synchronization
+automatically at startup and can recover the CAN line without manual intervention in case of
+communication interruptions.
+
+8.3 Safety, Reliability, and Durability Considerations
+To ensure the durability of the vehicle, a hybrid structure consisting of birch plywood and
+polycarbonate panels was selected. Positioning the E-stop button on the sensor mast in a way that
+remains under mechanical protection even in the event of a rollover ensures full compliance with
+IGVC safety standards.
+8.4 Key Hardware Failure Points and On-Site Resolution Strategies
+The semi-modular structure of the polycarbonate panels allows the damaged part to be quickly
+removed and replaced with a spare part in the field in the event of a mechanical impact.
+8.5 Virtual Environment Testing and Gazebo Simulation
+Ayaz's autonomous driving algorithms were tested in the Gazebo environment prior to physical
+manufacturing. The 52-degree field of view of the cameras and the axial placement of the LiDAR
+were verified in the simulation, proving that blind spots were minimized.
+
+8.6 Physical Testing to Date
+Mechanical: During Ayaz's mechanical tests, chassis rigidity, body panels, the skid steering drive
+structure, and the performance of the PETG-TPU airless wheels were evaluated. It was observed that
+the 10 mm birch plywood chassis provided vibration damping, while the 5 mm polycarbonate panels
+protected the electronic components while facilitating maintenance access. The 1:25 reduction ratio
+and the placement of the 20 lb payload near the rear axle supported low-speed control and traction.
+Electronics: In the electronics tests, the 3S 11.1V Li-Po battery, custom-designed PDB, Jetson Orin,
+STM32F407, SparkMAX motor drivers, and CAN Bus communication were verified together. It was
+observed that the PDB separated the motor lines from sensitive logic circuits, and speed, current,
+and odometry data could be retrieved via the CAN Bus. The relay-based E-stop system was tested,
+confirming that while motor power is cut, the Jetson and sensors continue to operate.
+Software: In the software tests, environmental perception with camera and 2D LiDAR data, 2D
+occupancy grid generation, localization, A* path planning, and Pure Pursuit trajectory tracking were
+tested on the vehicle. An obstacle map was created by fusing camera and LiDAR data, and GPS, IMU,
+and wheel odometry were utilized for localization. During the tests, system behavior was monitored
+via a web interface and log records.
+8.7 Predicted Performance Analysis
+• Speed: Ayaz’s maximum theoretical speed is approximately 1.78 m/s, based on the 1:25 gear
+reduction and 150 mm wheel diameter. This keeps the vehicle within the IGVC 1–5 mph
+speed limits.
+• Ramp Climbing: With a competition mass of about 25.1 kg, REV NEO motors, and a 1:25
+reduction ratio, Ayaz is expected to climb 15% grade ramps without major traction loss.
+• Reaction Time: The relay-based hardware E-Stop system is designed to cut motor power in
+less than 0.5 seconds, independently from the high-level software.
+• Localization: GPS, IMU, and wheel odometry data are fused through an Extended Kalman
+Filter to provide stable position and heading estimation for waypoint navigation and path
+tracking.
+• Battery Life: Ayaz uses a 3S 11.1V Li-Po battery, with an expected battery life of
+approximately 2–3 hours, sufficient for AutoNav runs and repeated testing.
+• Obstacle Detection: Camera and 2D LiDAR data are used together for obstacle detection.
+Cameras support lane and visual obstacle detection, while LiDAR provides distance
+information for the occupancy grid.
+• Complex Obstacles: Ayaz handles barrels, potholes, narrow passages, ramps, dead ends, and
+traps by updating the occupancy grid and replanning with A*. Pure Pursuit provides stable
+path tracking.
+• Waypoint Accuracy: Waypoint accuracy is supported by EKF-based fusion of GPS, IMU, and
+wheel odometry. Final accuracy will be validated through field tests.
+• Failure Handling: Failure handling is supported by the hardware E-Stop, CAN-Bus recovery,
+modular body panels, HC-12 RF backup communication, and Automatic Bus-Off
+Management.
+• Testing Comparison: Simulation and field test results will be compared for path planning,
+obstacle detection, localization stability, latency, and vehicle motion.
+8.8 Software Testing Bug Tracking and Version Control
+For version control and remote storage, our team implements git and GitHub. The git platform
+provides pull requests, branches, and issues sections, facilitating simultaneous development across
+multiple developers. GitHub serves as our remote repository host, storing both legacy and current
+
+software versions accessible to all team members. Upon initialization, Ayaz automatically retrieves
+code from the main branch's latest version—a branch that can only be modified through pull
+requests that undergo review by authorized team leaders before implementation.
+9. Cyber Security Analysis
+Ayaz has been analyzed against potential cyber threats due to its networked structure and multisource software libraries (ROS2, NVIDIA Jetpack, etc.). Three fundamental vulnerabilities that must
+be addressed during the transition to mass production are presented below:
+9.1 Wireless Network Vulnerabilities
+The vehicle's telemetry data and configuration interface are transmitted via Wi-Fi. An unsecured or
+weakly encrypted wireless network can allow attackers to monitor the data (Eavesdropping) or
+intercept and send spoofed commands (Man-in-the-Middle).
+Hardening Strategy: During the mass production phase, the standard WPA2 encryption should be
+upgraded to the WPA3 protocol, and enterprise-level certificate-based authentication (802.1X)
+should be implemented. Furthermore, device-based MAC address filtering and an encrypted VPN
+tunnel must be mandated for access to the management interface.
+9.2 Denial of Service on Sensor Data
+Autonomous vehicles perform high-speed data transfer over UDP/TCP packets to perceive their
+environment. Attackers can lock the vehicle's obstacle detection system by sending excessive
+packets over the network (flooding) or manipulating sensor data (spoofing), forcing the vehicle to
+stop or perform erratic maneuvers.
+Hardening Strategy: DDS (Data Distribution Service) Security must be enabled within the software
+architecture. By utilizing the SROS (Secure ROS) features provided by ROS2, mutual authentication
+and data integrity checks (checksums) must be ensured among all sensor nodes. In this way, packets
+from unverified sources are rejected by the system.
+9.3 Unauthorized Physical Access to the Debug Port
+The external panels and modular structure of the vehicle facilitate maintenance but simultaneously
+leave physical access points (the USB and UART ports of the NVIDIA Jetson Orin) vulnerable. A
+malicious actor could infiltrate the operating system through these ports, obtain root privileges, and
+modify the software.
+Hardening Strategy: The physical hardware design must be updated to support the Secure Boot
+feature during the mass production phase. This ensures that only secure software signed by the
+manufacturer can be executed. Additionally, unused physical ports must be disabled at the hardware
+level, and internal electronic components must be enclosed within tamper-evident sealed housings.
+
+
