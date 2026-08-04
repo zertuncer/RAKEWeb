@@ -250,6 +250,104 @@
             color: #1e293b;
             white-space: pre-wrap;
         }
+
+        .dashboard-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-logout {
+            background: #fff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .dashboard-title {
+                font-size: 1.35rem;
+            }
+
+            .dashboard-actions {
+                width: 100%;
+            }
+
+            .dashboard-actions .form-control,
+            #team-filter {
+                flex: 1;
+                min-width: 0;
+                width: auto !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-card .value {
+                font-size: 1.5rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.85rem;
+                font-size: 0.85rem;
+            }
+
+            .modal-content {
+                width: 94%;
+                padding: 1.25rem;
+                max-height: 85vh;
+            }
+
+            .login-wrapper {
+                min-height: 100vh;
+                padding: 1rem;
+                align-items: center;
+            }
+
+            .login-glass {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .dashboard-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .dashboard-actions .form-control,
+            #team-filter,
+            .btn-refresh,
+            .btn-logout {
+                width: 100% !important;
+            }
+        }
     </style>
 
     <link rel="icon" type="image/png" href="public/images/favicon.png">
@@ -279,7 +377,7 @@
     <div class="dashboard-container" id="main-app" style="display: none;">
         <div class="dashboard-header">
             <h1 class="dashboard-title">Başvuru Yönetim Paneli</h1>
-            <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="dashboard-actions">
                 <select id="team-filter" class="form-control" style="width: auto; padding: 0.4rem 1.5rem 0.4rem 0.5rem; font-size: 0.85rem;">
                     <option value="all">Tüm Ekipler</option>
                     <option value="Mekanik">Mekanik Ekibi</option>
