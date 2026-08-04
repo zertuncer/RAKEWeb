@@ -18,8 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveModalNotes = document.getElementById('btn-save-modal-notes');
     let currentNoteId = null;
 
-    // If running on Live Server (port 5500) or file://, we must point to the Node server
-    const apiUrl = window.location.port === '3000' ? '/api/applications' : 'http://localhost:3000/api/applications';
+    // Node ile aynı origin'de (cPanel / npm start) relative path; Live Server'da Node'a fallback
+    const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+        && window.location.port !== '3000';
+    const apiUrl = isLocalDev
+        ? 'http://localhost:3000/api/applications'
+        : '/api/applications';
 
     let allApplications = [];
     let questionMap = {};

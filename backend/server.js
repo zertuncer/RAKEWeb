@@ -5,7 +5,12 @@ const mysql = require('mysql2/promise');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 const dbPool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
@@ -14,32 +19,49 @@ const dbPool = mysql.createPool({
     database: process.env.DB_NAME || 'rake_db',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    timezone: '+03:00',
+    charset: 'utf8mb4'
 });
 
-app.use(cors());
-app.use(express.json());
+app.set('trust proxy', 1);
 
-// Basic Auth Middleware
+app.use(cors({
+    origin: CORS_ORIGIN === '*' ? true : CORS_ORIGIN.split(',').map((s) => s.trim()),
+    credentials: true
+}));
+app.use(express.json({ limit: '1mb' }));
+
+// Basic Auth Middleware (dashboard API)
 const auth = (req, res, next) => {
     const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
     const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
-    
-    // Default admin credentials
-    if (login === 'admin' && password === 'admin123') {
+
+    if (login === ADMIN_USER && password === ADMIN_PASSWORD) {
         return next();
     }
-    
+
     res.set('WWW-Authenticate', 'Basic realm="401"');
     res.status(401).send('Yetkisiz erişim. Lütfen giriş yapınız.');
 };
 
-// Serve dashboard explicitly (without native auth, handled via custom UI)
+// Health check (cPanel / monitoring)
+app.get('/api/health', async (req, res) => {
+    try {
+        await dbPool.query('SELECT 1');
+        res.json({ ok: true, db: true });
+    } catch (error) {
+        console.error('Health check DB error:', error.message);
+        res.status(503).json({ ok: false, db: false, error: 'Veritabanı bağlantısı yok' });
+    }
+});
+
+// Serve dashboard explicitly (auth handled via custom UI)
 app.get('/dashboard.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend', 'dashboard.html'));
 });
 
-// Serve static files from the root directory so the dashboard and index can be loaded
+// Static frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // POST: Submit a new application
@@ -47,7 +69,7 @@ app.post('/api/apply', async (req, res) => {
     try {
         const id = Date.now().toString();
         const { fullName, email, phone, team, ...otherData } = req.body;
-        
+
         const newApp = {
             id,
             fullName: fullName || '',
@@ -59,7 +81,7 @@ app.post('/api/apply', async (req, res) => {
             data: JSON.stringify(otherData),
             createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
         };
-        
+
         await dbPool.query(
             'INSERT INTO applications (id, fullName, email, phone, team, status, notes, data, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [newApp.id, newApp.fullName, newApp.email, newApp.phone, newApp.team, newApp.status, newApp.notes, newApp.data, newApp.createdAt]
@@ -67,7 +89,7 @@ app.post('/api/apply', async (req, res) => {
 
         res.status(201).json({ success: true, message: 'Başvuru alındı', data: { ...newApp, ...otherData } });
     } catch (error) {
-        console.error("Error saving application to MySQL:", error);
+        console.error('Error saving application to MySQL:', error);
         res.status(500).json({ success: false, error: 'Sunucu hatası' });
     }
 });
@@ -76,8 +98,7 @@ app.post('/api/apply', async (req, res) => {
 app.get('/api/applications', auth, async (req, res) => {
     try {
         const [rows] = await dbPool.query('SELECT * FROM applications ORDER BY createdAt DESC');
-        // Parse the 'data' JSON string back to object properties
-        const applications = rows.map(row => {
+        const applications = rows.map((row) => {
             const dataObj = typeof row.data === 'string' ? JSON.parse(row.data) : (row.data || {});
             return {
                 id: row.id,
@@ -93,7 +114,7 @@ app.get('/api/applications', auth, async (req, res) => {
         });
         res.json(applications);
     } catch (error) {
-        console.error("Error reading applications from MySQL:", error);
+        console.error('Error reading applications from MySQL:', error);
         res.status(500).json({ success: false, error: 'Sunucu hatası' });
     }
 });
@@ -103,8 +124,7 @@ app.put('/api/applications/:id', auth, async (req, res) => {
     try {
         const { id } = req.params;
         const { status, notes } = req.body;
-        
-        // Update fields if provided
+
         const updates = [];
         const values = [];
         if (status !== undefined) {
@@ -120,7 +140,7 @@ app.put('/api/applications/:id', auth, async (req, res) => {
             values.push(id);
             await dbPool.query(`UPDATE applications SET ${updates.join(', ')} WHERE id = ?`, values);
         }
-        
+
         const [rows] = await dbPool.query('SELECT * FROM applications WHERE id = ?', [id]);
         if (rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Başvuru bulunamadı' });
@@ -128,16 +148,29 @@ app.put('/api/applications/:id', auth, async (req, res) => {
 
         res.json({ success: true, data: rows[0] });
     } catch (error) {
-        console.error("Error updating application in MySQL:", error);
+        console.error('Error updating application in MySQL:', error);
         res.status(500).json({ success: false, error: 'Sunucu hatası' });
     }
 });
 
-// Catch-all for SPA routing (must be after all other routes and static files)
+// Catch-all for SPA / unknown routes
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+function startServer() {
+    // cPanel Passenger (Setup Node.js App)
+    if (typeof PhusionPassenger !== 'undefined') {
+        PhusionPassenger.configure({ autoInstall: false });
+        app.listen('passenger', () => {
+            console.log('Server is running on Passenger (cPanel)');
+        });
+        return;
+    }
+
+    app.listen(PORT, HOST, () => {
+        console.log(`Server is running on http://${HOST}:${PORT}`);
+    });
+}
+
+startServer();
