@@ -5,24 +5,41 @@
 
 /* ─── CUSTOM PROPERTIES ─── */
 :root {
-    /* Colors (Modern & Minimalist) */
+    /* Dark surface (ana site) */
     --bg-primary: #09090b;
-    /* Zinc 950 */
     --bg-secondary: #18181b;
-    /* Zinc 900 */
+    --bg-elevated: #27272a;
     --glass-bg: rgba(24, 24, 27, 0.7);
     --glass-border: rgba(255, 255, 255, 0.1);
     --glass-hover: rgba(255, 255, 255, 0.05);
+
+    /* Light surface (form / dashboard paneli) */
+    --light-bg: #fafafa;
+    --light-surface: #ffffff;
+    --light-muted: #f4f4f5;
+    --light-border: #e4e4e7;
+    --light-border-strong: #d4d4d8;
+    --light-text: #18181b;
+    --light-text-secondary: #52525b;
+    --light-text-muted: #71717a;
+
+    /* Accent — nötr zinc (mor/mavi yok) */
+    --accent: #ffffff;
     --accent-cyan: #ffffff;
-    /* Beyaz vurgu */
     --accent-blue: #e4e4e7;
-    /* Zinc 200 */
     --accent-purple: #a1a1aa;
-    /* Zinc 400 */
+    --accent-strong: #27272a;
+    --accent-strong-hover: #3f3f46;
     --accent-gradient: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+
     --text-primary: #fafafa;
     --text-secondary: #a1a1aa;
     --text-muted: #52525b;
+
+    --danger: #dc2626;
+    --danger-soft: #fef2f2;
+    --success-soft: #f0fdf4;
+    --warning-soft: #fffbeb;
 
     /* Typography */
     --font-display: 'Montserrat', system-ui, sans-serif;
@@ -217,8 +234,8 @@ body.mode-3d-active #spline-bg::before {
         repeating-linear-gradient(0deg,
             transparent,
             transparent 2px,
-            rgba(0, 229, 255, 0.015) 2px,
-            rgba(0, 229, 255, 0.015) 4px);
+            rgba(255, 255, 255, 0.02) 2px,
+            rgba(255, 255, 255, 0.02) 4px);
     mix-blend-mode: overlay;
 }
 
@@ -469,12 +486,12 @@ body.mode-3d-active #main-header * {
 }
 
 .btn-primary {
-    background: #52525b;
-    color: white;
+    background: var(--accent-strong);
+    color: var(--text-primary);
 }
 
 .btn-primary:hover {
-    background: #757575;
+    background: var(--accent-strong-hover);
 }
 
 /* Carousel Controls */
@@ -751,11 +768,11 @@ body.mode-3d-active #btn-close-3d {
     font-family: var(--font-mono);
     font-size: 0.6rem;
     letter-spacing: 0.25em;
-    color: var(--accent-cyan);
+    color: var(--text-secondary);
     padding: var(--space-xs) var(--space-md);
-    border: 1px solid rgba(0, 229, 255, 0.25);
+    border: 1px solid var(--glass-border);
     border-radius: 100px;
-    background: rgba(0, 229, 255, 0.06);
+    background: rgba(255, 255, 255, 0.06);
     margin-bottom: var(--space-lg);
 }
 
@@ -1018,11 +1035,11 @@ body.mode-3d-active #component-panel {
     font-family: var(--font-mono);
     font-size: 0.55rem;
     letter-spacing: 0.2em;
-    color: var(--accent-cyan);
+    color: var(--text-secondary);
     padding: 2px 8px;
-    border: 1px solid rgba(0, 229, 255, 0.2);
+    border: 1px solid var(--glass-border);
     border-radius: 4px;
-    background: rgba(0, 229, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .detail-version {
@@ -1484,17 +1501,17 @@ body.mobile-nav-open {
 
 .mode-btn:hover {
     color: var(--text-secondary);
-    background: rgba(100, 180, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .mode-btn.active {
-    color: var(--accent-cyan);
-    background: rgba(0, 229, 255, 0.1);
-    box-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.06);
 }
 
 .mode-btn.active svg {
-    filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.25));
 }
 
 .mode-btn svg {
@@ -1525,11 +1542,11 @@ body.mode-click #spline-bg {
     letter-spacing: 0.15em;
     padding: 10px 24px;
     border-radius: var(--radius-md);
-    background: rgba(0, 229, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 229, 255, 0.25);
-    color: var(--accent-cyan);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
     opacity: 0;
     pointer-events: none;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2310,11 +2327,14 @@ body.team-page-active #main-header.scrolled {
 }
 
 
-/* ─── LOGIN UI FOR DASHBOARD ─── */
+/* ─── LOGIN UI FOR DASHBOARD (site zinc teması) ─── */
 .login-wrapper {
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, #180826 0%, #341550 50%, #180826 100%);
+    background:
+        radial-gradient(ellipse at 30% 20%, rgba(63, 63, 70, 0.35) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(39, 39, 42, 0.45) 0%, transparent 45%),
+        var(--bg-primary);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2323,16 +2343,16 @@ body.team-page-active #main-header.scrolled {
 }
 
 .login-glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid var(--glass-border);
     padding: 3rem 2.5rem;
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    color: white;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+    color: var(--text-primary);
 }
 
 .login-title {
@@ -2341,6 +2361,7 @@ body.team-page-active #main-header.scrolled {
     font-size: 1.8rem;
     margin-bottom: 2rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .input-group {
@@ -2351,16 +2372,16 @@ body.team-page-active #main-header.scrolled {
     display: block;
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .input-group input {
     width: 100%;
     padding: 0.8rem 1rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.2);
-    color: white;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--text-primary);
     font-family: var(--font-body);
     font-size: 1rem;
     transition: border-color 0.3s, background 0.3s;
@@ -2368,27 +2389,28 @@ body.team-page-active #main-header.scrolled {
 
 .input-group input:focus {
     outline: none;
-    border-color: #3b82f6;
-    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .btn-login {
     width: 100%;
     padding: 0.9rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 600;
+    font-family: var(--font-body);
     cursor: pointer;
     transition: background 0.3s, transform 0.2s, border-color 0.3s;
     margin-top: 1rem;
 }
 
 .btn-login:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: var(--accent-strong-hover);
+    border-color: rgba(255, 255, 255, 0.35);
     transform: translateY(-2px);
 }
 
@@ -2400,7 +2422,7 @@ body.team-page-active #main-header.scrolled {
 }
 
 .login-error {
-    color: #ef4444;
+    color: #f87171;
     font-size: 0.9rem;
     text-align: center;
     min-height: 1.2rem;
@@ -2408,18 +2430,20 @@ body.team-page-active #main-header.scrolled {
 }
 
 .btn-logout {
-    background-color: #ef4444;
-    color: white;
-    border: none;
+    background: var(--light-surface);
+    color: var(--light-text);
+    border: 1px solid var(--light-border-strong);
     padding: 0.5rem 1rem;
     border-radius: 6px;
     font-weight: 500;
+    font-family: var(--font-body);
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .btn-logout:hover {
-    background-color: #dc2626;
+    background: var(--light-muted);
+    border-color: #a1a1aa;
 }
 
 /* ─── BAŞVURU PAGE ─── */
@@ -2991,8 +3015,8 @@ textarea {
 }
 
 .custom-select-trigger.open {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    border-color: #71717a;
+    box-shadow: 0 0 0 3px rgba(113, 113, 122, 0.18);
 }
 
 .custom-select-trigger svg {
@@ -3041,8 +3065,8 @@ textarea {
 }
 
 .custom-select-option.selected {
-    background: #eff6ff;
-    color: #2563eb;
+    background: #f4f4f5;
+    color: #18181b;
     font-weight: 500;
 }
 
@@ -3068,12 +3092,11 @@ textarea {
 /* ─── FORM SUBMIT BUTTONS ─── */
 .btn-primary,
 .cta-btn.primary {
-    background-color: #6b7280;
-    /* Simple Grey */
+    background-color: var(--accent-strong);
     color: #ffffff;
     border: none;
     padding: 1rem 2rem;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     font-size: 1.05rem;
     font-family: var(--font-body), sans-serif;
     font-weight: 600;
@@ -3089,8 +3112,7 @@ textarea {
 
 .btn-primary:hover,
 .cta-btn.primary:hover {
-    background-color: #4b5563;
-    /* Darker Grey on hover */
+    background-color: var(--accent-strong-hover);
     transform: translateY(-2px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
