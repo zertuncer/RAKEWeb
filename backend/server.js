@@ -3,6 +3,11 @@ const cors = require('cors');
 const path = require('path');
 const mysql = require('mysql2/promise');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const {
+    APPLICATION_COLUMNS,
+    splitApplicationPayload,
+    formatMysqlDate
+} = require('./schema');
 
 const app = express();
 
@@ -68,26 +73,31 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.post('/api/apply', async (req, res) => {
     try {
         const id = Date.now().toString();
-        const { fullName, email, phone, team, ...otherData } = req.body;
+        const { row, extra } = splitApplicationPayload(req.body);
+        const createdAt = formatMysqlDate(new Date().toISOString());
 
-        const newApp = {
+        const record = {
             id,
-            fullName: fullName || '',
-            email: email || '',
-            phone: phone || '',
-            team: team || '',
+            ...row,
             status: 'Bekliyor',
             notes: '',
-            data: JSON.stringify(otherData),
-            createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
+            data: JSON.stringify(extra),
+            createdAt
         };
 
+        const placeholders = APPLICATION_COLUMNS.map(() => '?').join(', ');
+        const values = APPLICATION_COLUMNS.map((col) => record[col] ?? '');
+
         await dbPool.query(
-            'INSERT INTO applications (id, fullName, email, phone, team, status, notes, data, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [newApp.id, newApp.fullName, newApp.email, newApp.phone, newApp.team, newApp.status, newApp.notes, newApp.data, newApp.createdAt]
+            `INSERT INTO applications (${APPLICATION_COLUMNS.join(', ')}) VALUES (${placeholders})`,
+            values
         );
 
-        res.status(201).json({ success: true, message: 'Başvuru alındı', data: { ...newApp, ...otherData } });
+        res.status(201).json({
+            success: true,
+            message: 'Başvuru alındı',
+            data: { ...record, ...extra, data: undefined }
+        });
     } catch (error) {
         console.error('Error saving application to MySQL:', error);
         res.status(500).json({ success: false, error: 'Sunucu hatası' });
@@ -100,15 +110,9 @@ app.get('/api/applications', auth, async (req, res) => {
         const [rows] = await dbPool.query('SELECT * FROM applications ORDER BY createdAt DESC');
         const applications = rows.map((row) => {
             const dataObj = typeof row.data === 'string' ? JSON.parse(row.data) : (row.data || {});
+            const { data: _data, ...fields } = row;
             return {
-                id: row.id,
-                fullName: row.fullName,
-                email: row.email,
-                phone: row.phone,
-                team: row.team,
-                status: row.status,
-                notes: row.notes,
-                createdAt: row.createdAt,
+                ...fields,
                 ...dataObj
             };
         });

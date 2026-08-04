@@ -1,17 +1,23 @@
-require('dotenv').config({ path: '../.env' });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const mysql = require('mysql2/promise');
 const fs = require('fs/promises');
-const path = require('path');
+const {
+    APPLICATION_COLUMNS,
+    ensureApplicationsSchema,
+    splitApplicationPayload,
+    formatMysqlDate
+} = require('./schema');
 
 async function migrateData() {
     const dataFile = path.join(__dirname, 'applications.json');
-    
+
     try {
-        const data = await fs.readFile(dataFile, 'utf8');
-        const applications = JSON.parse(data);
-        
+        const raw = await fs.readFile(dataFile, 'utf8');
+        const applications = JSON.parse(raw);
+
         if (applications.length === 0) {
-            console.log("No data to migrate.");
+            console.log('No data to migrate.');
             return;
         }
 
@@ -22,47 +28,44 @@ async function migrateData() {
             database: process.env.DB_NAME || 'rake_db',
             waitForConnections: true,
             connectionLimit: 10,
-            queueLimit: 0
+            queueLimit: 0,
+            charset: 'utf8mb4'
         });
+
+        // Tablo yoksa oluştur, eksik kolonları ekle
+        await ensureApplicationsSchema(dbPool);
 
         console.log(`Starting migration of ${applications.length} applications...`);
 
+        const placeholders = APPLICATION_COLUMNS.map(() => '?').join(', ');
+        const insertSql = `INSERT IGNORE INTO applications (${APPLICATION_COLUMNS.join(', ')}) VALUES (${placeholders})`;
+
         for (const app of applications) {
-            const { id, fullName, email, phone, team, status, notes, createdAt, ...otherData } = app;
-            
-            // Reformat Date string if it is in ISO standard so MySQL doesn't complain
-            let formattedDate = createdAt;
-            if (formattedDate && formattedDate.includes('T')) {
-                formattedDate = new Date(createdAt).toISOString().slice(0, 19).replace('T', ' ');
-            }
+            const { row, extra } = splitApplicationPayload(app);
 
-            const newApp = {
-                id: id || Date.now().toString(),
-                fullName: fullName || '',
-                email: email || '',
-                phone: phone || '',
-                team: team || '',
-                status: status || 'Bekliyor',
-                notes: notes || '',
-                data: JSON.stringify(otherData),
-                createdAt: formattedDate || new Date().toISOString().slice(0, 19).replace('T', ' ')
-            };
+            const values = APPLICATION_COLUMNS.map((col) => {
+                if (col === 'id') return app.id || Date.now().toString();
+                if (col === 'status') return app.status || 'Bekliyor';
+                if (col === 'notes') return app.notes || '';
+                if (col === 'data') return JSON.stringify(extra);
+                if (col === 'createdAt') return formatMysqlDate(app.createdAt);
+                return row[col] ?? '';
+            });
 
-            await dbPool.query(
-                'INSERT IGNORE INTO applications (id, fullName, email, phone, team, status, notes, data, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [newApp.id, newApp.fullName, newApp.email, newApp.phone, newApp.team, newApp.status, newApp.notes, newApp.data, newApp.createdAt]
-            );
+            await dbPool.query(insertSql, values);
         }
 
-        console.log("Migration complete.");
+        console.log('Migration complete.');
+        await dbPool.end();
         process.exit(0);
     } catch (err) {
         if (err.code === 'ENOENT') {
-            console.log("No applications.json found. Nothing to migrate.");
+            console.log('No applications.json found. Nothing to migrate.');
+            process.exit(0);
         } else {
-            console.error("Migration error:", err);
+            console.error('Migration error:', err);
+            process.exit(1);
         }
-        process.exit(1);
     }
 }
 
