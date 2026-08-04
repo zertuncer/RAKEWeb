@@ -248,7 +248,6 @@
             font-size: 0.85rem;
             color: var(--light-text-muted, #71717a);
             margin-bottom: 0.25rem;
-            text-transform: uppercase;
         }
 
         .detail-item p {
@@ -256,6 +255,126 @@
             font-size: 1rem;
             color: var(--light-text, #18181b);
             white-space: pre-wrap;
+        }
+
+        .modal-title {
+            margin: 0 0 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-border, #e4e4e7);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--light-text, #18181b);
+        }
+
+        .detail-hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .detail-name {
+            margin: 0 0 0.35rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--light-text, #18181b);
+        }
+
+        .detail-sub {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--light-text-muted, #71717a);
+        }
+
+        .detail-status-badge {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .detail-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--light-muted, #f4f4f5);
+            border: 1px solid var(--light-border, #e4e4e7);
+            border-radius: 10px;
+        }
+
+        .detail-meta-label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--light-text-muted, #71717a);
+            margin-bottom: 0.2rem;
+        }
+
+        .detail-meta-value {
+            font-size: 0.95rem;
+            color: var(--light-text, #18181b);
+            text-decoration: none;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        a.detail-meta-value:hover {
+            text-decoration: underline;
+        }
+
+        .detail-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-section-title {
+            margin: 0 0 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--light-text-secondary, #52525b);
+        }
+
+        .detail-qa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .detail-qa {
+            padding: 0.85rem 1rem;
+            background: var(--light-surface, #fff);
+            border: 1px solid var(--light-border, #e4e4e7);
+            border-radius: 10px;
+        }
+
+        .detail-qa-q {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--light-text-secondary, #52525b);
+            margin-bottom: 0.35rem;
+            line-height: 1.4;
+        }
+
+        .detail-qa-a {
+            font-size: 0.98rem;
+            color: var(--light-text, #18181b);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .detail-empty {
+            color: var(--light-text-muted, #71717a);
+            font-style: italic;
         }
 
         .dashboard-actions {
@@ -328,6 +447,15 @@
                 width: 94%;
                 padding: 1.25rem;
                 max-height: 85vh;
+            }
+
+            .detail-meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-hero {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
             .login-wrapper {
@@ -445,10 +573,9 @@
 
     <!-- Details Modal -->
     <div class="modal-overlay" id="details-modal">
-        <div class="modal-content">
-            <button class="modal-close" id="modal-close">&times;</button>
-            <h2 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:1rem; margin-bottom:1.5rem;">Başvuru
-                Detayları</h2>
+        <div class="modal-content" style="max-width: 720px;">
+            <button class="modal-close" id="modal-close" aria-label="Kapat">&times;</button>
+            <h2 class="modal-title">Başvuru detayı</h2>
             <div id="modal-body"></div>
         </div>
     </div>
@@ -456,8 +583,8 @@
     <!-- Notes Modal -->
     <div class="modal-overlay" id="notes-modal">
         <div class="modal-content" style="max-width: 500px;">
-            <button class="modal-close" id="notes-modal-close">&times;</button>
-            <h2 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:1rem; margin-bottom:1.5rem;" id="notes-modal-title">Notlar</h2>
+            <button class="modal-close" id="notes-modal-close" aria-label="Kapat">&times;</button>
+            <h2 class="modal-title" id="notes-modal-title">Notlar</h2>
             <div class="notes-modal-body">
                 <textarea id="notes-modal-textarea" rows="5" class="form-control" placeholder="Aday hakkında notlarınızı buraya yazabilirsiniz..."></textarea>
                 <button id="btn-save-modal-notes" style="margin-top: 1rem;">Kaydet</button>

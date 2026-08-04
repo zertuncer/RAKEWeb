@@ -48,6 +48,81 @@ document.addEventListener('DOMContentLoaded', () => {
     let allApplications = [];
     let questionMap = {};
 
+    // Kısa, okunabilir alan etiketleri (basvuru formu ile senkron)
+    const FIELD_LABELS = {
+        fullName: 'Ad Soyad',
+        email: 'E-posta',
+        phone: 'Telefon',
+        department: 'Sınıf / Bölüm',
+        team: 'Ekip',
+        status: 'Durum',
+        notes: 'Notlar',
+        createdAt: 'Başvuru tarihi',
+        qReason: 'İTÜ RAKE tercih sebebi',
+        qCareer: 'Kariyer hedefi',
+        qProgram: 'Planlanan program',
+        qClubs: 'Kulüp / organizasyon',
+        qTime: 'Haftalık müsaitlik',
+        qWeekend: 'Hafta sonu katılım',
+        qMekanikTasarim: 'Tasarım tecrübesi',
+        qMekanikCad: 'CAD deneyimi',
+        qMekanikUretim: 'Üretim bilgisi',
+        qYazilimDiller: 'Yazılım dilleri',
+        qYazilimLinux: 'Linux deneyimi',
+        qYazilimRos: 'ROS bilgisi',
+        qYazilimGithub: 'GitHub',
+        qElektronikGomulu: 'Gömülü sistemler',
+        qElektronikPcb: 'PCB tasarımı',
+        qElektronikDonanim: 'Geliştirme kartı deneyimi',
+        qOrgDeneyim: 'Organizasyon deneyimi',
+        qOrgNeden: 'Organizasyon motivasyonu'
+    };
+
+    const COMMON_Q_KEYS = ['qReason', 'qCareer', 'qProgram', 'qClubs', 'qTime', 'qWeekend'];
+    const TEAM_Q_KEYS = {
+        Mekanik: ['qMekanikTasarim', 'qMekanikCad', 'qMekanikUretim'],
+        Yazılım: ['qYazilimDiller', 'qYazilimLinux', 'qYazilimRos', 'qYazilimGithub'],
+        Elektronik: ['qElektronikGomulu', 'qElektronikPcb', 'qElektronikDonanim'],
+        Organizasyon: ['qOrgDeneyim', 'qOrgNeden']
+    };
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function fieldLabel(key) {
+        if (questionMap[key]) return questionMap[key];
+        if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+        // camelCase → okunabilir fallback (asla "Soru Yanıtı" değil)
+        return key
+            .replace(/^q/, '')
+            .replace(/([A-Z])/g, ' $1')
+            .trim();
+    }
+
+    function statusBadgeClass(status) {
+        if (status === 'Kabul') return 'status-kabul';
+        if (status === 'Red') return 'status-red';
+        return 'status-bekliyor';
+    }
+
+    function renderQaItem(key, value) {
+        const text = (value === undefined || value === null || String(value).trim() === '')
+            ? '<span class="detail-empty">Yanıt yok</span>'
+            : escapeHtml(value);
+        return `
+            <div class="detail-qa">
+                <div class="detail-qa-q">${escapeHtml(fieldLabel(key))}</div>
+                <div class="detail-qa-a">${text}</div>
+            </div>
+        `;
+    }
+
     // DOM Elements for Login
     const loginContainer = document.getElementById('login-container');
     const mainApp = document.getElementById('main-app');
@@ -121,23 +196,25 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
     });
 
-    // Fetch question map from index.html
+    // Form etiketlerini basvuru.html'den yükle (index.html'de form yok)
     async function fetchQuestionMap() {
         try {
-            const res = await fetch('index.html');
+            const res = await fetch('basvuru.html');
+            if (!res.ok) return;
             const html = await res.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             const inputs = doc.querySelectorAll('#native-apply-form [name]');
-            inputs.forEach(input => {
+            inputs.forEach((input) => {
                 const id = input.id;
-                const label = doc.querySelector(`label[for="${id}"]`);
+                const label = id ? doc.querySelector(`label[for="${id}"]`) : null;
                 if (label) {
-                    questionMap[input.name] = label.innerText;
+                    const text = label.textContent.replace(/\s+/g, ' ').trim();
+                    if (text) questionMap[input.name] = text;
                 }
             });
         } catch (e) {
-            console.error('Error fetching index.html for questions map:', e);
+            console.error('Soru etiketleri yüklenemedi, varsayılan etiketler kullanılacak:', e);
         }
     }
 
@@ -242,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </td>
                 <td>
-                    <button class="btn-view-details" data-id="${app.id}">Detaylar</button>
+                    <button class="btn-view-details" data-id="${app.id}">Detay</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -294,39 +371,90 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDetails(app) {
-        let html = '';
+        const date = app.createdAt
+            ? new Date(app.createdAt).toLocaleString('tr-TR', {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            })
+            : '-';
 
-        // General fields we want to skip in the generic loop
-        const skipKeys = ['id', 'createdAt', 'status', 'notes', 'fullName', 'team', 'department', 'email', 'phone'];
+        const status = app.status || 'Bekliyor';
+        const teamKeys = TEAM_Q_KEYS[app.team] || [];
+        const usedKeys = new Set([
+            'id', 'createdAt', 'status', 'notes', 'fullName', 'team',
+            'department', 'email', 'phone', ...COMMON_Q_KEYS, ...teamKeys
+        ]);
 
-        html += `<div class="detail-item"><strong>Ad Soyad:</strong> <p>${app.fullName || '-'}</p></div>`;
-        html += `<div class="detail-item"><strong>İletişim:</strong> <p>${app.email || '-'} | ${app.phone || '-'}</p></div>`;
-        html += `<div class="detail-item"><strong>Bölüm / Takım:</strong> <p>${app.department || '-'} / ${app.team || '-'}</p></div>`;
+        const commonHtml = COMMON_Q_KEYS.map((k) => renderQaItem(k, app[k])).join('');
+        const teamHtml = teamKeys.length
+            ? teamKeys.map((k) => renderQaItem(k, app[k])).join('')
+            : '';
 
-        html += '<hr style="border:0; border-top:1px solid #e2e8f0; margin:1.5rem 0;">';
+        // Bilinen grupların dışında kalan ekstra alanlar
+        const extraKeys = Object.keys(app).filter((k) => {
+            if (usedKeys.has(k)) return false;
+            const v = app[k];
+            return v !== undefined && v !== null && String(v).trim() !== '';
+        });
+        const extraHtml = extraKeys.map((k) => renderQaItem(k, app[k])).join('');
 
-        // Map other fields to readable format
-        for (const [key, value] of Object.entries(app)) {
-            if (!skipKeys.includes(key) && value) {
-                // Prettify key name
-                let label = key;
-                if (questionMap[key]) {
-                    label = questionMap[key];
-                } else if (key.startsWith('q')) {
-                    label = "Soru Yanıtı (" + key.substring(1) + ")";
-                }
-                html += `<div class="detail-item"><strong>${label}:</strong> <p>${value}</p></div>`;
-            }
-        }
+        modalBody.innerHTML = `
+            <div class="detail-hero">
+                <div class="detail-hero-main">
+                    <h3 class="detail-name">${escapeHtml(app.fullName || 'İsimsiz başvuru')}</h3>
+                    <p class="detail-sub">${escapeHtml(app.team || '-')} · ${escapeHtml(app.department || '-')}</p>
+                </div>
+                <span class="detail-status-badge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>
+            </div>
 
-        modalBody.innerHTML = html;
+            <div class="detail-meta-grid">
+                <div class="detail-meta">
+                    <span class="detail-meta-label">E-posta</span>
+                    <a class="detail-meta-value" href="mailto:${escapeHtml(app.email || '')}">${escapeHtml(app.email || '-')}</a>
+                </div>
+                <div class="detail-meta">
+                    <span class="detail-meta-label">Telefon</span>
+                    <a class="detail-meta-value" href="tel:${escapeHtml(app.phone || '')}">${escapeHtml(app.phone || '-')}</a>
+                </div>
+                <div class="detail-meta">
+                    <span class="detail-meta-label">Tarih</span>
+                    <span class="detail-meta-value">${escapeHtml(date)}</span>
+                </div>
+                <div class="detail-meta">
+                    <span class="detail-meta-label">Not</span>
+                    <span class="detail-meta-value">${app.notes && String(app.notes).trim() ? escapeHtml(app.notes) : '<span class="detail-empty">Yok</span>'}</span>
+                </div>
+            </div>
+
+            <section class="detail-section">
+                <h4 class="detail-section-title">Ortak sorular</h4>
+                <div class="detail-qa-list">${commonHtml}</div>
+            </section>
+
+            ${teamHtml ? `
+            <section class="detail-section">
+                <h4 class="detail-section-title">${escapeHtml(app.team || 'Ekip')} soruları</h4>
+                <div class="detail-qa-list">${teamHtml}</div>
+            </section>` : ''}
+
+            ${extraHtml ? `
+            <section class="detail-section">
+                <h4 class="detail-section-title">Diğer</h4>
+                <div class="detail-qa-list">${extraHtml}</div>
+            </section>` : ''}
+        `;
+
         modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetailsModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
     }
 
     // Close Modals
-    modalClose.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
+    modalClose.addEventListener('click', closeDetailsModal);
 
     notesModalClose.addEventListener('click', () => {
         notesModal.style.display = 'none';
@@ -334,12 +462,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-        }
+        if (e.target === modal) closeDetailsModal();
         if (e.target === notesModal) {
             notesModal.style.display = 'none';
             currentNoteId = null;
+        }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (modal.style.display === 'flex') closeDetailsModal();
+            if (notesModal.style.display === 'flex') {
+                notesModal.style.display = 'none';
+                currentNoteId = null;
+            }
         }
     });
 
