@@ -1,0 +1,6 @@
+# cPanel Node.js (Passenger) — Setup Node.js App genelde bunu otomatik yazar.
+# Elle kullanacaksanız Application root = bu klasör, Startup file = backend/server.js
+#
+# PassengerEnabled On
+# PassengerAppType node
+# PassengerStartupFile backend/server.js

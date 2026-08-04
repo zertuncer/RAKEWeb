@@ -18,12 +18,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveModalNotes = document.getElementById('btn-save-modal-notes');
     let currentNoteId = null;
 
-    // Node ile aynı origin'de (cPanel / npm start) relative path; Live Server'da Node'a fallback
-    const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname)
-        && window.location.port !== '3000';
-    const apiUrl = isLocalDev
-        ? 'http://localhost:3000/api/applications'
-        : '/api/applications';
+    // API tabanı: meta/window override > local Live Server > aynı origin
+    function resolveApiBase() {
+        const meta = document.querySelector('meta[name="rake-api-base"]');
+        if (meta && meta.content) return meta.content.replace(/\/$/, '');
+        if (typeof window.RAKE_API_BASE === 'string' && window.RAKE_API_BASE) {
+            return window.RAKE_API_BASE.replace(/\/$/, '');
+        }
+        const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+            && window.location.port !== '3000'
+            && window.location.port !== '';
+        if (isLocalDev) return 'http://localhost:3000';
+        return '';
+    }
+
+    const apiBase = resolveApiBase();
+    const apiUrl = `${apiBase}/api/applications`;
+    const healthUrl = `${apiBase}/api/health`;
+
+    function loginErrorMessage(status) {
+        if (status === 401) return 'Hatalı kullanıcı adı veya şifre!';
+        if (status === 404 || status === 502 || status === 503) {
+            return 'API sunucusuna ulaşılamıyor (Node.js çalışmıyor olabilir). cPanel > Setup Node.js App ile uygulamayı başlatın.';
+        }
+        if (status === 0) return 'Sunucuya bağlanılamadı.';
+        return `Giriş başarısız (HTTP ${status}).`;
+    }
 
     let allApplications = [];
     let questionMap = {};
@@ -68,15 +88,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Fetch data now that we are logged in
                 fetchQuestionMap().then(fetchApplications);
             } else {
-                loginError.innerText = 'Hatalı kullanıcı adı veya şifre!';
+                loginError.innerText = loginErrorMessage(response.status);
             }
         } catch (error) {
-            loginError.innerText = 'Sunucuya bağlanılamadı.';
+            loginError.innerText = loginErrorMessage(0);
         } finally {
             btnLogin.disabled = false;
             btnLogin.innerText = 'Giriş Yap';
         }
     });
+
+    // Sayfa açılışında API sağlığını kontrol et
+    (async function checkApiHealth() {
+        try {
+            const res = await fetch(healthUrl, { credentials: 'omit' });
+            if (!res.ok) {
+                loginError.innerText = loginErrorMessage(res.status);
+                return;
+            }
+            const data = await res.json();
+            if (!data.db) {
+                loginError.innerText = 'API çalışıyor ama veritabanı bağlantısı yok. .env DB ayarlarını kontrol edin.';
+            }
+        } catch (_) {
+            loginError.innerText = loginErrorMessage(0) + ' /api/health yanıt vermiyor.';
+        }
+    })();
 
     // Handle Logout
     btnLogout.addEventListener('click', () => {

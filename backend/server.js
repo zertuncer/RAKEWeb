@@ -40,9 +40,12 @@ app.use(express.json({ limit: '1mb' }));
 // Basic Auth Middleware (dashboard API)
 const auth = (req, res, next) => {
     const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
-    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':');
+    const decoded = Buffer.from(b64auth, 'base64').toString();
+    const colon = decoded.indexOf(':');
+    const login = (colon === -1 ? decoded : decoded.slice(0, colon)).trim();
+    const password = (colon === -1 ? '' : decoded.slice(colon + 1)).trim();
 
-    if (login === ADMIN_USER && password === ADMIN_PASSWORD) {
+    if (login === String(ADMIN_USER).trim() && password === String(ADMIN_PASSWORD).trim()) {
         return next();
     }
 
