@@ -1325,10 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = Object.fromEntries(formData.entries());
 
             try {
-                // Determine API URL based on where it's running (fallback to localhost:3000 for local testing)
-                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:3000/api/apply'
-                    : '/api/apply';
+                const apiUrl = '/api/apply';
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',

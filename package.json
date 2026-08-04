@@ -2,9 +2,9 @@
   "name": "rake",
   "version": "1.0.0",
   "description": "",
-  "main": "script.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "node app.js",
     "setup:db": "node backend/init_db.js && node backend/migrate_data.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

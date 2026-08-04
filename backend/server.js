@@ -166,7 +166,7 @@ app.use((req, res) => {
 });
 
 function startServer() {
-    // cPanel Passenger (Setup Node.js App)
+    // cPanel / CloudLinux Passenger
     if (typeof PhusionPassenger !== 'undefined') {
         PhusionPassenger.configure({ autoInstall: false });
         app.listen('passenger', () => {
@@ -177,7 +177,10 @@ function startServer() {
 
     app.listen(PORT, HOST, () => {
         console.log(`Server is running on http://${HOST}:${PORT}`);
+        console.log(`Health: http://${HOST}:${PORT}/api/health`);
     });
 }
 
+// Passenger bazı kurulumlarda export bekler
+module.exports = app;
 startServer();

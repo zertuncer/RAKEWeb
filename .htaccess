@@ -1,6 +1,35 @@
-# cPanel Node.js (Passenger) — Setup Node.js App genelde bunu otomatik yazar.
-# Elle kullanacaksanız Application root = bu klasör, Startup file = backend/server.js
-#
-# PassengerEnabled On
-# PassengerAppType node
-# PassengerStartupFile backend/server.js
+# Shared hosting (PHP + MySQL) — Node gerekmez
+Options -Indexes
+DirectoryIndex index.html
+
+# .env dosyasını dışarı kapat
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^\.env">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Authorization header (dashboard Basic Auth) — LiteSpeed/CGI
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
+    # /api/* → api/index.php
+    RewriteRule ^api(?:/(.*))?$ api/index.php [QSA,L]
+
+    # Kök → frontend
+    RewriteRule ^$ frontend/ [L,R=302]
+    RewriteRule ^index\.html$ frontend/ [L,R=302]
+
+    # Kısayollar
+    RewriteRule ^dashboard\.html$ frontend/dashboard.html [L,R=302]
+    RewriteRule ^basvuru\.html$ frontend/basvuru.html [L,R=302]
+    RewriteRule ^iletisim\.html$ frontend/iletisim.html [L,R=302]
+</IfModule>

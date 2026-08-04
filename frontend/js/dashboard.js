@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const healthUrl = `${apiBase}/api/health`;
 
     function loginErrorMessage(status) {
-        if (status === 401) return 'Hatalı kullanıcı adı veya şifre!';
+        if (status === 401) return 'Hatalı kullanıcı adı veya şifre! (.env içindeki ADMIN_USER / ADMIN_PASSWORD)';
         if (status === 404 || status === 502 || status === 503) {
-            return 'API sunucusuna ulaşılamıyor (Node.js çalışmıyor olabilir). cPanel > Setup Node.js App ile uygulamayı başlatın.';
+            return 'API yanıt vermiyor. /api/health adresini kontrol edin; .htaccess ve api/ klasörünün yüklü olduğundan emin olun.';
         }
         if (status === 0) return 'Sunucuya bağlanılamadı.';
         return `Giriş başarısız (HTTP ${status}).`;
